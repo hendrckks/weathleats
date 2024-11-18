@@ -24,7 +24,7 @@ const SignIn = () => {
     if (state?.message) {
       setMessage(state.message);
     }
-
+    console.log(message);
     // Clear the location state after using it
     window.history.replaceState({}, document.title);
   }, [location]);
@@ -46,7 +46,7 @@ const SignIn = () => {
       });
     } catch (error: any) {
       let errorMessage = "Failed to sign in";
-      
+
       if (error.code === "auth/wrong-password") {
         errorMessage = "Invalid password. Please try again.";
       } else if (error.code === "auth/user-not-found") {
@@ -54,12 +54,15 @@ const SignIn = () => {
       } else if (error.code === "auth/invalid-email") {
         errorMessage = "Please enter a valid email address.";
       } else if (error.code === "auth/invalid-credential") {
-        errorMessage = "Invalid credentials. Please check your email and password.";
+        errorMessage =
+          "Invalid credentials. Please check your email and password.";
       } else if (error.message.includes("Password must contain")) {
-        errorMessage = "Password must contain at least one uppercase letter and one number.";
+        errorMessage =
+          "Password must contain at least one uppercase letter and one number.";
       }
-      
-      setError(errorMessage);    } finally {
+
+      setError(errorMessage);
+    } finally {
       setLoading(false);
     }
   };
