@@ -2,7 +2,7 @@ import { Search } from "lucide-react";
 
 const Sidebar = () => {
   return (
-    <div className="fixed left-0 top-0 flex h-screen w-72 flex-col bg-background border-r border-r-primary/50 p-6 space-y-6">
+    <div className="fixed left-0 top-0 flex h-[100vh] w-72 flex-col bg-background border-r border-r-primary/50 p-6 space-y-6">
       {/* Search Section */}
       <div className="space-y-2 mt-28">
         <h2 className="text-sm font-medium">Search</h2>
