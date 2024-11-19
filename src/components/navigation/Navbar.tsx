@@ -6,9 +6,9 @@ const Navbar = () => {
   const { user } = useAuth();
 
   return (
-    <div className="fixed justify-between left-0 right-0 top-0 z-10 h-16 border-b border-primary/50 bg-background shadow-sm flex items-center">
+    <div className="fixed justify-between left-0 right-0 top-0 z-50 h-16 border-b border-primary/50 bg-background shadow-sm flex items-center">
       <div className="px-8 flex items-center gap-10 ">
-        <span className="text-xl">Weathleats</span>
+        <Link to="/" className="text-xl">Weathleats</Link>
         <div className="gap-10 flex text-sm">
           <Link
             to="/"
