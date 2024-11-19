@@ -59,13 +59,13 @@ const RecipeInfo = () => {
         </div>
       </div>
       <div className="flex gap-24 mt-4">
-        <div className="h-[480px] mt-10">
+        <div className="h-[480px] mt-5">
           <img
             src="/recipes/recipe1.jfif"
-            className="h-full object-cover w-[736px] rounded-md"
+            className="h-full object-cover w-[750px] rounded-md"
           />
         </div>
-        <div className="w-1/2 mt-[-4px]">
+        <div className="w-1/2 mt-5">
           <BenefitsAndNutrition />
         </div>
       </div>

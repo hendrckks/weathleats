@@ -45,7 +45,6 @@ const BenefitsAndNutrition = () => {
             <span className="font-medium">76g</span>
           </div>
         </div>
-        <p className='py-2 mt-2 font-semibold text-textWhite'>See more 6+</p>
       </div>
     </div>
   );
