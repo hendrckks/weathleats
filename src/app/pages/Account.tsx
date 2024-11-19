@@ -96,11 +96,11 @@ const Account: React.FC = () => {
                   <input type="checkbox" className="rounded" />
                   <span>Dessert</span>
                 </label>
-                <div className="p-3 bg-primary text-background mt-10 rounded-sm text-sm">
+                <div className="p-3 bg-primary text-textWhite mt-10 rounded-sm text-sm">
                   Generate grocery list
                 </div>
               </div>
-              {/* <div className="p-3 bg-primary text-background mt-10 rounded-sm text-sm">
+              {/* <div className="p-3 bg-primary text-textWhite mt-10 rounded-sm text-sm">
                 Generate grocery list
               </div> */}
             </div>

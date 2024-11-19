@@ -23,7 +23,7 @@
 //       className="w-full flex flex-col rounded-md relative"
 //     >
 //       <div className="absolute top-3 left-2 flex items-center space-x-2 z-30">
-//         <div className="flex items-center backdrop-blur-lg bg-white/30 px-1 py-1 rounded-xl text-background">
+//         <div className="flex items-center backdrop-blur-lg bg-white/30 px-1 py-1 rounded-xl text-textWhite">
 //           <svg
 //             className="w-4 h-4 mr-1"
 //             viewBox="0 0 24 24"
@@ -47,7 +47,7 @@
 //           </svg>
 //           <span className="text-xs">30min</span>
 //         </div>
-//         <div className="flex items-center backdrop-blur-3xl bg-white/30 px-1 py-1 rounded-xl text-background">
+//         <div className="flex items-center backdrop-blur-3xl bg-white/30 px-1 py-1 rounded-xl text-textWhite">
 //           <svg
 //             className="w-4 h-4 mr-1"
 //             viewBox="0 0 24 24"

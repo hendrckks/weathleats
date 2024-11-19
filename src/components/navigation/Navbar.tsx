@@ -27,7 +27,7 @@ const Navbar = () => {
             className="text-primary hover:text-textBlack transition-colors duration-100 ease-in-out"
           >
             Submit a recipe
-            <span className="text-[10px] px-2 py-2 ml-2 rounded-sm bg-primary/90 text-background">
+            <span className="text-[10px] px-2 py-2 ml-2 rounded-sm bg-primary/90 text-textWhite">
               Coming soon
             </span>
           </Link>
@@ -38,7 +38,7 @@ const Navbar = () => {
           {user && pathname !== "/profile" && (
             <Link
               to="/profile"
-              className="py-2 px-3 bg-primary text-background text-xs rounded-sm"
+              className="py-2 px-3 bg-primary text-textWhite text-xs rounded-sm"
             >
               Account
             </Link>
@@ -50,7 +50,7 @@ const Navbar = () => {
               </Link>
               <Link
                 to="/login"
-                className="py-2 px-3 bg-primary text-background text-xs rounded-sm"
+                className="py-2 px-3 bg-primary text-textWhite text-xs rounded-sm"
               >
                 Login
               </Link>

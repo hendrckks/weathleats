@@ -24,27 +24,28 @@ const BenefitsAndNutrition = () => {
 
       {/* Nutrition Facts Section */}
       <div className="bg-primary rounded-lg p-6">
-        <h3 className="text-lg text-background mb-4">
-          Nutrition facts <span className="text-sm text-background/80">(per serving)</span>
+        <h3 className="text-lg text-textWhite mb-4">
+          Nutrition facts <span className="text-sm text-textWhite/80">(per serving)</span>
         </h3>
         <div className="space-y-3">
-          <div className="flex justify-between text-background items-center py-2">
-            <span className="text-background">Calories</span>
+          <div className="flex justify-between text-textWhite items-center py-2">
+            <span className="text-textWhite">Calories</span>
             <span className="font-medium">583</span>
           </div>
-          <div className="flex justify-between text-background items-center py-2">
+          <div className="flex justify-between text-textWhite items-center py-2">
             <span className="">Protein</span>
             <span className="font-medium">19g</span>
           </div>
-          <div className="flex justify-between text-background items-center py-2">
+          <div className="flex justify-between text-textWhite items-center py-2">
             <span className="">Fats</span>
             <span className="font-medium">21g</span>
           </div>
-          <div className="flex justify-between text-background items-center py-2">
+          <div className="flex justify-between text-textWhite items-center py-2">
             <span className="">Carbs</span>
             <span className="font-medium">76g</span>
           </div>
         </div>
+        <p className='py-2 mt-2 font-semibold text-textWhite'>See more 6+</p>
       </div>
     </div>
   );

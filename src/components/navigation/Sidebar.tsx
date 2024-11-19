@@ -107,7 +107,7 @@ const Sidebar = () => {
         <div className="p-5 space-y-3 bg-primary/20 rounded-md">
           <p className="text-textBlack text-base">Subscribe to newsletter</p>
           <div className="p-4 bg-[#667259] space-y-5 rounded-md">
-            <p className="text-sm text-white/90">
+            <p className="text-sm text-textWhite">
               Get new recipe alerts and tips to your inbox daily
             </p>
             <div className="bg-white p-3 text-sm text-center rounded-md text-textBlack hover:bg-background/90 transition-colors cursor-pointer font-medium">

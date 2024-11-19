@@ -10,7 +10,8 @@ export default {
         secondaryBackground: "#ededed",
         textBlack: "#3e3b34",
         textGrey: "#7c7c7c",
-        textWhite: "#f9f9f9",
+        textWhite: "#f4f6f3",
+      
       },
       fontFamily: {
         athauss: "At Hauss Std TRIAL",

@@ -65,7 +65,7 @@ const RecipeInfo = () => {
             className="h-full object-cover w-[736px] rounded-md"
           />
         </div>
-        <div className="w-1/2 mt-8">
+        <div className="w-1/2 mt-[-4px]">
           <BenefitsAndNutrition />
         </div>
       </div>
