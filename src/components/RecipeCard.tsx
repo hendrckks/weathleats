@@ -25,7 +25,7 @@ const RecipeCard = () => {
         }}
         className="w-full flex flex-col rounded-md cursor-pointer relative"
       >
-        <div className="absolute top-3 left-2 flex items-center space-x-2 z-30">
+        <div className="absolute top-4 left-2 flex items-center space-x-2 z-30">
           <div className="flex items-center backdrop-blur-lg bg-white/30 px-1 py-1 rounded-xl text-textWhite">
             <svg
               className="w-4 h-4 mr-1"
@@ -77,7 +77,7 @@ const RecipeCard = () => {
         />
         <span className="text-base mt-3">Tofu Katsu Curry</span>
         <button
-          className={`absolute top-4 right-4 bg-transparent p-2 rounded-full transition-all duration-300 ease-in-out transform hover:scale-105`}
+          className={`absolute top-4 right-6 bg-transparent rounded-full transition-all duration-300 ease-in-out transform hover:scale-105`}
           onClick={handleLikeClick}
         >
           <svg

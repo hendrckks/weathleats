@@ -36,7 +36,7 @@ const Home = () => {
                 </div>
               </div>
               <div className="bg-primary/90 rounded-md w-[500px] h-full mx-auto space-y-2 p-2">
-                <div className="bg-[#667259] p-5 text-textWhite rounded-md space-y-3 text-sm">
+                <div className="bg-[#637257] p-5 text-textWhite rounded-md space-y-3 text-sm">
                   <div className="flex gap-2 items-center">
                     <ShoppingBasket className="h-5"/>
                     <span>Generate grocery lists</span>

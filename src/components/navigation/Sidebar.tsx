@@ -106,7 +106,7 @@ const Sidebar = () => {
       <div className="fixed bottom-10 left-6 w-60">
         <div className="p-5 space-y-3 bg-primary/20 rounded-md">
           <p className="text-textBlack text-base">Subscribe to newsletter</p>
-          <div className="p-4 bg-[#667259] space-y-5 rounded-md">
+          <div className="p-4 bg-[#637257] space-y-5 rounded-md">
             <p className="text-sm text-textWhite">
               Get new recipe alerts and tips to your inbox daily
             </p>

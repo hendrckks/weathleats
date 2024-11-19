@@ -27,7 +27,7 @@ const Navbar = () => {
             className="text-primary hover:text-textBlack transition-colors duration-100 ease-in-out"
           >
             Submit a recipe
-            <span className="text-[10px] px-2 py-2 ml-2 rounded-sm bg-primary/90 text-textWhite">
+            <span className="text-[10px] px-2 py-2 ml-2 rounded-sm bg-[#637257] text-textWhite">
               Coming soon
             </span>
           </Link>
