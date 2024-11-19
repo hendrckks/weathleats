@@ -7,7 +7,7 @@ import BenefitsAndNutrition from "../../components/NutritionBenefits";
 const RecipeInfo = () => {
   return (
     <Container className="py-14 mx-auto text-sm rounded-sm min-h-screen">
-      <div className="space-y-5 pt-24">
+      <div className="space-y-5 pt-16">
         <div className="p-2 bg-primary/20 w-fit text-xs text-textBlack">
           Breakfast
         </div>
