@@ -195,7 +195,7 @@ const SignUp = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/60 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-md bg-gradient-to-b from-[#637257] to-[#4b5942] px-4 py-2 text-sm font-medium text-white hover:from-[#4b5942] hover:to-[#3c4735] focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Signing up..." : "Sign Up"}
               </button>
@@ -255,12 +255,12 @@ const SignUp = () => {
             className="w-full h-full object-cover"
           />
           <div className="absolute bottom-16 left-8 max-w-sm flex flex-col items-start">
-            <QuoteLeft className="text-background mb-3" />
-            <blockquote className="italic text-background text-base">
+            <QuoteLeft className="text-textWhite mb-3" />
+            <blockquote className="italic text-textWhite text-base">
               The food you eat can be either the safest and most powerful form
               of medicine or the slowest form of poison.
             </blockquote>
-            <p className="mt-3 text-background text-xs">
+            <p className="mt-3 text-textWhite text-xs">
               - Ann Wigmore, Holistic Health Practitioner
             </p>
           </div>
