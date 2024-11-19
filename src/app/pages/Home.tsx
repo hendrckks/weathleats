@@ -144,7 +144,7 @@ const Home = () => {
               </div>
             </div>
 
-            <h2 className="text-2xl mt-5">Suggested Recipes</h2>
+            <h2 className="text-2xl mt-4">Suggested Recipes</h2>
           </div>
           <div className="mt-8 grid grid-cols-3 gap-10">
             <RecipeCard />
