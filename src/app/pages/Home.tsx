@@ -70,7 +70,7 @@ const Home = () => {
 
             <div className="relative">
               <div
-                className="p-2 w-fit text-sm rounded-sm mt-8 bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer hover:bg-primary/30 transition-colors"
+                className="p-2 w-fit text-sm rounded-sm mt-5 bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer hover:bg-primary/30 transition-colors"
                 onMouseEnter={() => setIsDropdownOpen(true)}
                 onMouseLeave={() => setIsDropdownOpen(false)}
               >
@@ -144,7 +144,7 @@ const Home = () => {
               </div>
             </div>
 
-            <h2 className="text-2xl mt-10">Suggested Recipes</h2>
+            <h2 className="text-2xl mt-5">Suggested Recipes</h2>
           </div>
           <div className="mt-8 grid grid-cols-3 gap-10">
             <RecipeCard />

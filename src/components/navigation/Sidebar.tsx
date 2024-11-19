@@ -19,7 +19,7 @@ const Sidebar = () => {
       {/* Types Section */}
       <div className="space-y-3">
         <h2 className="text-sm font-medium">Types</h2>
-        <div className="space-y-4 text-sm text-textBlack">
+        <div className="space-y-3 text-sm text-textBlack">
           <label className="flex items-center space-x-2">
             <input
               type="checkbox"
@@ -56,7 +56,7 @@ const Sidebar = () => {
       {/* Category Section */}
       <div className="space-y-3">
         <h2 className="text-sm font-medium">Category</h2>
-        <div className="space-y-4 text-textBlack text-sm">
+        <div className="space-y-3 text-textBlack text-sm">
           <label className="flex items-center space-x-2">
             <input
               type="checkbox"
@@ -102,13 +102,17 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* newsletter  */}
-      <div className="absolute bottom-10 px-5 left-0">
+      {/* newsletter - Updated positioning */}
+      <div className="fixed bottom-10 left-6 w-60">
         <div className="p-5 space-y-3 bg-primary/20 rounded-md">
           <p className="text-textBlack text-base">Subscribe to newsletter</p>
           <div className="p-4 bg-[#667259] space-y-5 rounded-md">
-            <p className="text-sm text-white/90">Get new recipe alerts and tips to your inbox daily</p>
-            <div className="bg-white p-3 text-sm text-center rounded-md text-textBlack hover:bg-background/90 transition-colors cursor-pointer font-medium">Subscribe</div>
+            <p className="text-sm text-white/90">
+              Get new recipe alerts and tips to your inbox daily
+            </p>
+            <div className="bg-white p-3 text-sm text-center rounded-md text-textBlack hover:bg-background/90 transition-colors cursor-pointer font-medium">
+              Subscribe
+            </div>
           </div>
         </div>
       </div>
