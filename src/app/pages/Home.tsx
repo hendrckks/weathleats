@@ -15,7 +15,7 @@ const Home = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
-    <div className="min-h-screen pt-24">
+    <div className="min-h-screen pt-20">
       <Sidebar />
       <div className="text-textBlack ml-[317px] mb-10">
         <div className="p-10">
@@ -24,7 +24,7 @@ const Home = () => {
               <div>
                 <div>
                   <h1 className="text-5xl">
-                    1000 Plus performance <br /> driven recipes in your palm.
+                    1000 Plus performance <br /> driven recipes for athletes.
                   </h1>
                 </div>
                 <div className="mt-8">
@@ -70,7 +70,7 @@ const Home = () => {
 
             <div className="relative">
               <div
-                className="p-2 w-fit text-sm rounded-sm mt-5 bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer hover:bg-primary/30 transition-colors"
+                className="p-2 w-fit text-sm rounded-sm mt-4 bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer hover:bg-primary/30 transition-colors"
                 onMouseEnter={() => setIsDropdownOpen(true)}
                 onMouseLeave={() => setIsDropdownOpen(false)}
               >
