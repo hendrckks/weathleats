@@ -35,7 +35,7 @@ import {
   signUpSchema,
   loginSchema,
   resetPasswordSchema,
-} from "../../types/firestore";
+} from "../../types/auth";
 import { SESSION_DURATION } from "./config";
 import { ZodError } from "zod";
 import { toast } from "../../hooks/useToast";

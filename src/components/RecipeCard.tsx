@@ -72,7 +72,7 @@ const RecipeCard = () => {
           </div>
         </div>
         <img
-          src="/recipes/recipe1.jfif"
+          src="/recipes/Crab.jfif"
           className="h-[315px] object-cover w-full rounded-md"
         />
         <span className="text-base mt-3">Tofu Katsu Curry</span>
