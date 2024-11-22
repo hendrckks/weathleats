@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { signOut } from "../../lib/firebase/auth";
-import RecipeCard from "../../components/RecipeCard";
+// import RecipeCard from "../../components/RecipeCard";
 import { ChevronDown } from "lucide-react";
 
 const Account: React.FC = () => {
@@ -190,7 +190,7 @@ const Account: React.FC = () => {
 
             {/* Recipe Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-              <RecipeCard />
+              {/* <RecipeCard /> */}
             </div>
           </div>
         </div>
