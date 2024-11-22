@@ -23,7 +23,7 @@ const RECIPE_TYPES = [
   { label: "Gluten Free", code: "GF" },
 ];
 
-const AddRecipeForm = () => {
+const AddRecipe = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -490,4 +490,4 @@ const AddRecipeForm = () => {
   );
 };
 
-export default AddRecipeForm;
+export default AddRecipe;
