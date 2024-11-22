@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ChevronDown,
   Heart,
@@ -6,13 +6,43 @@ import {
   ShoppingBasket,
   Target,
 } from "lucide-react";
-// import IngredientsCard from "../../components/IngredientsCard";
 import Sidebar from "../../components/navigation/Sidebar";
 import RecipeCard from "../../components/RecipeCard";
 import { Link } from "react-router-dom";
+import { fetchInitial30Recipes } from "../../lib/firebase/firestore";
+
+interface InitialRecipe {
+  id: string;
+  name: string;
+  calories: number | undefined;
+  prepTime: string;
+  imageUrl: string;
+}
 
 const Home = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [initialRecipes, setInitialRecipes] = useState<InitialRecipe[]>([]);
+  
+
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      try {
+        const recipes = await fetchInitial30Recipes();
+        const mappedRecipes: InitialRecipe[] = recipes.map((recipe: any) => ({
+          id: recipe.id,
+          name: recipe.name || "Unnamed Recipe",
+          calories: recipe.nutritionFacts?.calories || "N/A",
+          prepTime: recipe.prepTime?.toString() || "N/A",
+          imageUrl: recipe.imageUrls?.[0] || "",
+          types: recipe.type,
+        }));
+        setInitialRecipes(mappedRecipes);
+      } catch (error) {
+        console.error("Error fetching initial recipes:", error);
+      }
+    };
+    fetchRecipes();
+  }, []);
 
   return (
     <div className="min-h-screen pt-20">
@@ -24,7 +54,8 @@ const Home = () => {
               <div>
                 <div>
                   <h1 className="text-5xl">
-                    1000 Plus performance <br /> driven recipes for <span className="text-[#4b5942]">athletes.</span>
+                    1000 Plus performance <br /> driven recipes for{" "}
+                    <span className="text-[#4b5942]">athletes.</span>
                   </h1>
                 </div>
                 <div className="mt-8">
@@ -38,19 +69,19 @@ const Home = () => {
               <div className="bg-primary/90 rounded-md w-[500px] h-full mx-auto space-y-2 p-2">
                 <div className="bg-[#637257] p-5 text-textWhite rounded-md space-y-3 text-sm">
                   <div className="flex gap-2 items-center">
-                    <ShoppingBasket className="h-5"/>
+                    <ShoppingBasket className="h-5" />
                     <span>Generate grocery lists</span>
                   </div>
                   <div className="flex gap-2 items-center">
-                    <Target className="h-5"/>
+                    <Target className="h-5" />
                     <span>Get recipe suggestions according to your goals</span>
                   </div>
                   <div className="flex gap-2 items-center">
-                    <Heart className="h-5"/>
+                    <Heart className="h-5" />
                     <span>Save favourite recipes to your profile</span>
                   </div>
                   <div className="flex gap-2 items-center">
-                    <NotebookPen className="h-5"/>
+                    <NotebookPen className="h-5" />
                     <span>Submit your own recipe</span>
                   </div>
                 </div>
@@ -61,7 +92,10 @@ const Home = () => {
                   >
                     Get full access
                   </Link>
-                  <Link to="/recipe" className="w-1/2 text-center p-4 text-textWhite text-sm cursor-pointer">
+                  <Link
+                    to="/s"
+                    className="w-1/2 text-center p-4 text-textWhite text-sm cursor-pointer"
+                  >
                     Subscribe
                   </Link>
                 </div>
@@ -80,7 +114,6 @@ const Home = () => {
                     isDropdownOpen ? "rotate-180" : ""
                   }`}
                 />
-                {/* Dropdown Menu */}
                 {isDropdownOpen && (
                   <div className="absolute left-0 top-full mt-[2px] bg-background border border-primary/40 shadow-lg rounded-sm w-56 py-1 px-1 z-50">
                     <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer p-2">
@@ -147,10 +180,9 @@ const Home = () => {
             <h2 className="text-2xl mt-4">Suggested Recipes</h2>
           </div>
           <div className="mt-6 grid grid-cols-3 gap-10">
-            <RecipeCard />
-            <RecipeCard />
-            <RecipeCard />
-            <RecipeCard />
+            {initialRecipes.map((recipe) => (
+              <RecipeCard key={recipe.id} {...recipe} />
+            ))}
           </div>
         </div>
       </div>

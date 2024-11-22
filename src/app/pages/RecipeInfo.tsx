@@ -1,18 +1,39 @@
+import { useState } from "react";
+import { Share, Minus, Plus, Check } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Share } from "../../assets/icons/Share";
 import Container from "../../components/Container";
-import Instructions from "../../components/Instructions";
-import BenefitsAndNutrition from "../../components/NutritionBenefits";
+import { Recipe } from "../../types/firestore";
 
-const RecipeInfo = () => {
+interface RecipeInfoProps {
+  recipe: Recipe;
+}
+
+const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
+  const [servings, setServings] = useState(1);
+  const [isMetric, setIsMetric] = useState(true);
+
+  const toggleMetricUnits = () => {
+    setIsMetric(!isMetric);
+  };
+
+  const dietTypeAbbreviations: Record<string, string> = {
+    Vegetarian: "V",
+    Vegan: "Ve",
+    "Gluten Free": "GF",
+  };
+
   return (
     <Container className="py-14 mx-auto text-sm rounded-sm min-h-screen">
       <div className="space-y-5 pt-16">
         <div className="p-2 bg-primary/20 w-fit text-xs text-textBlack">
-          Breakfast
+          {recipe.category?.[0] || "Uncategorized"}
         </div>
         <div className="justify-between flex">
-          <p className="text-5xl">Tofu Katsu Curry</p>
+          <h1 className="text-5xl">
+            {recipe.name.charAt(0).toUpperCase() + recipe.name.slice(1)}
+          </h1>
+
           <div className="group flex">
             <Share className="text-textBlack text-2xl cursor-pointer" />
             <p className="relative group-hover:text-textBlack/60 font-semibold left-2 bottom-4 transition-colors ease-in-out text-transparent">
@@ -21,22 +42,25 @@ const RecipeInfo = () => {
           </div>
         </div>
         <div className="w-1/3">
-          <p className="text-base text-textBlack">
-            Tofu cutlets coated in breadcrumbs, served with a fragrant Japanese
-            curry sauce and rice.
-          </p>
+          <p className="text-base text-textBlack">{recipe.description}</p>
         </div>
         <div>
           <div className="flex gap-4 items-center">
-            <span className="text-xs bg-[#6b6b71] text-white px-1.5 py-1 rounded">
-              GF
-            </span>
+            {recipe.type?.map((type: string) => (
+              <span
+                key={type}
+                className="inline-flex items-center text-xs bg-[#6b6b71] text-white px-2 py-1 rounded"
+              >
+                {dietTypeAbbreviations[type] || type}
+              </span>
+            ))}
             <div className="flex items-center text-textBlack">
               <svg
                 className="w-4 h-4 mr-1"
                 viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
               >
                 <path
                   d="M12 6v6l4 2"
@@ -53,7 +77,7 @@ const RecipeInfo = () => {
                   strokeWidth="2"
                 />
               </svg>
-              <span className="ml-1">30 mins</span>
+              <span className="ml-1">{recipe.prepTime} mins</span>
             </div>
           </div>
         </div>
@@ -61,16 +85,164 @@ const RecipeInfo = () => {
       <div className="flex gap-24 mt-4">
         <div className="h-[480px] mt-5">
           <img
-            src="/recipes/recipe1.jfif"
+            src={recipe.imageUrls?.[0] || "/placeholder.svg"}
             className="h-full object-cover w-[750px] rounded-md"
+            alt={recipe.name}
           />
         </div>
-        <div className="w-1/2 mt-5">
-          <BenefitsAndNutrition />
+        <div className="w-1/2">
+          <div className="space-y-8">
+            {/* Meal Benefits Section */}
+            <div>
+              <h3 className="text-lg text-textBlack mb-4">Meal benefits</h3>
+              <div className="space-y-4">
+                {recipe.mealBenefits?.map((benefit, index) => (
+                  <div
+                    key={index}
+                    className="flex gap-3 items-start pb-4 border-b border-gray-200"
+                  >
+                    <Check className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                    <p className="text-gray-600 text-sm">{benefit}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Nutrition Facts Section */}
+            <div className="bg-primary rounded-lg p-6">
+              <h3 className="text-lg text-textWhite mb-4">
+                Nutrition facts{" "}
+                <span className="text-sm text-textWhite/80">(per serving)</span>
+              </h3>
+              <div className="space-y-3">
+                {recipe.nutritionFacts &&
+                  Object.entries(recipe.nutritionFacts)
+                    .filter(([_, value]) => value !== 0)
+                    .map(([key, value]) => (
+                      <div
+                        key={key}
+                        className="flex justify-between text-textWhite items-center py-2"
+                      >
+                        <span className="capitalize">{key}</span>
+                        <span className="font-medium">
+                          {value}
+                          {key === "calories" ? "" : "g"}
+                        </span>
+                      </div>
+                    ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div className="mt-28">
-        <Instructions />
+        <div className="flex gap-40 border-t py-20 border-t-primary">
+          {/* Ingredients Section */}
+          <div className="w-[400px]">
+            <h2 className="text-xl font-medium text-textBlack mb-4">
+              Ingredients
+            </h2>
+            <div className="bg-primary rounded-lg p-6 text-white/90">
+              {/* Serving Controls */}
+              <div className="flex mx-8 justify-between items-center mb-6">
+                <div className="flex flex-col items-center gap-4">
+                  <span>Serving</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setServings(Math.max(1, servings - 1))}
+                      className="hover:bg-white/20 rounded p-1 transition-colors"
+                      aria-label="Decrease servings"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <span className="bg-white/20 px-3 py-1 rounded">
+                      {servings}
+                    </span>
+                    <button
+                      onClick={() => setServings(servings + 1)}
+                      className="hover:bg-white/20 rounded p-1 transition-colors"
+                      aria-label="Increase servings"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                </div>
+                <AnimatePresence>
+                  <motion.div
+                    className="flex flex-col items-center gap-2"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <span>Unit</span>
+                    <div className="flex items-center gap-1 bg-white/20 p-1 rounded">
+                      <motion.button
+                        className={`px-2 py-1 rounded cursor-pointer ${
+                          isMetric ? "bg-white text-[#6B7B5F]" : ""
+                        }`}
+                        onClick={toggleMetricUnits}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        aria-pressed={isMetric}
+                      >
+                        Metric
+                      </motion.button>
+                      <motion.button
+                        className={`px-2 py-1 rounded cursor-pointer ${
+                          !isMetric ? "bg-white text-[#6B7B5F]" : ""
+                        }`}
+                        onClick={toggleMetricUnits}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        aria-pressed={!isMetric}
+                      >
+                        Imperial
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Ingredients List */}
+              <div className="space-y-4">
+                {recipe.ingredients?.map((ingredient, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center border-b border-white/20 pb-3"
+                  >
+                    <span className="font-medium">
+                      {ingredient.measurement} {ingredient.unit}
+                    </span>
+                    <span className="text-white/70">{ingredient.item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Instructions Section */}
+          <div className="flex-1 mt-5">
+            <h2 className="text-xl font-medium text-textBlack mb-4">
+              Instructions
+            </h2>
+            <div className="space-y-12">
+              {recipe.instructions?.map((instruction, index) => (
+                <div key={index}>
+                  <div className="text-sm text-gray-500 mb-2">
+                    Step {instruction.step}/{recipe.instructions?.length}
+                  </div>
+                  {/* <h3 className="text-lg text-textBlack font-medium mb-2">
+                    {`Step ${instruction.step}`}
+                  </h3> */}
+                  <p className="text-gray-600 leading-relaxed">
+                    {instruction.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
       <div className="flex flex-col space-y-8 items-center text-lg">
         <div className="">

@@ -2,17 +2,31 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-const RecipeCard = () => {
+interface RecipeCardProps {
+  name: string;
+  calories: number | string | undefined;
+  prepTime: string;
+  imageUrl: string;
+  id: string;
+}
+
+const RecipeCard: React.FC<RecipeCardProps> = ({
+  name,
+  calories,
+  prepTime,
+  imageUrl,
+  id,
+}) => {
   const [isLiked, setIsLiked] = useState(false);
 
-  const handleLikeClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault(); 
-    e.stopPropagation(); 
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsLiked(!isLiked);
   };
 
   return (
-    <Link to="/s">
+    <Link to={`/recipe/${id}`}>
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -48,7 +62,7 @@ const RecipeCard = () => {
                 strokeWidth="2"
               />
             </svg>
-            <span className="text-xs">30min</span>
+            <span className="text-xs">{prepTime} Mins</span>
           </div>
           <div className="flex items-center backdrop-blur-3xl bg-white/30 px-1 py-1 rounded-xl text-textWhite">
             <svg
@@ -68,14 +82,17 @@ const RecipeCard = () => {
                 strokeWidth="2"
               />
             </svg>
-            <span className="text-xs">338 cal</span>
+            <span className="text-xs">{calories ?? "N/A"} Cal</span>
           </div>
         </div>
         <img
-          src="/recipes/Crab.jfif"
-          className="h-[315px] object-cover w-full rounded-md"
+          src={imageUrl}
+          alt={name}
+          className="h-[315px] object-cover w-full rounded-lg"
         />
-        <span className="text-base mt-3">Tofu Katsu Curry</span>
+        <span className="text-base mt-3">
+          {name.charAt(0).toUpperCase() + name.slice(1)}
+        </span>
         <button
           className={`absolute top-4 right-6 bg-transparent rounded-full transition-all duration-300 ease-in-out transform hover:scale-105`}
           onClick={handleLikeClick}

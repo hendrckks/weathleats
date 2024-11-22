@@ -1,12 +1,16 @@
 import {
-//   collection,
+  collection,
   doc,
   setDoc,
   deleteDoc,
   updateDoc,
   Timestamp,
   getDoc,
-//   getDocs,
+  getDocs,
+  query,
+  orderBy,
+  limit,
+  where,
 } from "firebase/firestore";
 import {
   ref,
@@ -126,6 +130,99 @@ const deleteRecipeImages = async (
   }
 };
 
+export const fetchInitial30Recipes = async () => {
+  try {
+    const recipesRef = collection(db, "recipes");
+    const q = query(recipesRef, orderBy("createdAt", "desc"), limit(30));
+    const querySnapshot = await getDocs(q);
+
+    const recipes = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return recipes;
+  } catch (error) {
+    console.error("Error fetching initial recipes:", error);
+    throw error;
+  }
+};
+
+export const filterRecipesByTypeAndCategory = async (
+  selectedTypes: string[],
+  selectedCategories: string[]
+) => {
+  try {
+    const recipesRef = collection(db, "recipes");
+    let q = query(recipesRef);
+
+    if (selectedTypes.length > 0) {
+      q = query(q, where("type", "array-contains-any", selectedTypes));
+    }
+
+    if (selectedCategories.length > 0) {
+      q = query(q, where("category", "array-contains-any", selectedCategories));
+    }
+
+    const querySnapshot = await getDocs(q);
+
+    const filteredRecipes = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return filteredRecipes;
+  } catch (error) {
+    console.error("Error filtering recipes:", error);
+    throw error;
+  }
+};
+
+export const searchRecipes = async (searchTerm: string) => {
+  try {
+    const recipesRef = collection(db, "recipes");
+    const q = query(
+      recipesRef,
+      where("name", ">=", searchTerm),
+      where("name", "<=", searchTerm + "\uf8ff")
+    );
+    const querySnapshot = await getDocs(q);
+
+    const searchedRecipes = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return searchedRecipes;
+  } catch (error) {
+    console.error("Error searching recipes:", error);
+    throw error;
+  }
+};
+
+export const fetchRecipeById = async (id: string): Promise<Recipe | null> => {
+  try {
+    const docRef = doc(db, "recipes", id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const recipeData = docSnap.data();
+      // Use Zod to validate and parse the data
+      const validatedRecipe = recipeSchema.parse({
+        id: docSnap.id,
+        ...recipeData,
+      });
+      return validatedRecipe;
+    } else {
+      console.log("No such document!");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching recipe:", error);
+    throw error;
+  }
+};
+
 // Add a new recipe with validation and error handling
 export const addRecipe = async (
   recipeData: NewRecipeData,
@@ -136,6 +233,7 @@ export const addRecipe = async (
     const validatedData = z
       .object({
         name: z.string().min(1, "Recipe name is required"),
+        prepTime: z.number().optional(),
         description: z.string().optional(),
         mealBenefits: z.array(z.string()).optional(),
         nutritionFacts: z
