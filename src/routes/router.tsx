@@ -9,6 +9,7 @@ import RecipeInfo from "../app/pages/RecipeInfo";
 import ResetPassword from "../app/auth/ResetPassword";
 import ProtectedRoute from "./ProtectedRoute";
 import Account from "../app/pages/Account";
+import AddRecipeForm from "../app/pages/AddRecipe";
 // import ProtectedRoute from "./ProtectedRoute";
 
 // import ProfilePage from "../app/pages/ProfilePage";
@@ -55,6 +56,10 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        path: "/recipe",
+        element: <AddRecipeForm />
+      }
     ],
   },
 ]);
