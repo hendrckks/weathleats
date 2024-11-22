@@ -81,9 +81,8 @@ const AddRecipeForm = () => {
   };
 
   // Modified toggle handler for categories and types
-  // @ts-ignore: TS6133 - Variable 'array' is declared but its value is never read.
   const toggleArrayItem = (
-    array: string[],
+    _array: string[],
     setArray: React.Dispatch<React.SetStateAction<string[]>>,
     item: string
   ) => {
