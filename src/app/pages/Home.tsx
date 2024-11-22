@@ -61,9 +61,9 @@ const Home = () => {
                   >
                     Get full access
                   </Link>
-                  <div className="w-1/2 text-center p-4 text-textWhite text-sm cursor-pointer">
+                  <Link to="/recipe" className="w-1/2 text-center p-4 text-textWhite text-sm cursor-pointer">
                     Subscribe
-                  </div>
+                  </Link>
                 </div>
               </div>
             </div>
