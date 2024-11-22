@@ -3,7 +3,7 @@ import { Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { QuoteLeft } from "../../assets/icons/Quotes";
 import { resetPassword } from "../../lib/firebase/auth";
-import { ResetPasswordInput } from "../../types/firestore";
+import { ResetPasswordInput } from "../../types/auth";
 import { toast } from "../../hooks/useToast";
 
 const COUNTDOWN_TIME = 60; // 60 seconds = 1 minute

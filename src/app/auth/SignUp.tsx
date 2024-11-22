@@ -3,7 +3,7 @@ import { User, KeyRound, Mail } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { QuoteLeft } from "../../assets/icons/Quotes";
 import { signUp, signInWithGoogle } from "../../lib/firebase/auth";
-import { SignUpInput } from "../../types/firestore";
+import { SignUpInput } from "../../types/auth";
 import { toast } from "../../hooks/useToast";
 // import { useAuth } from "../../context/AuthContext";
 
