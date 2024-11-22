@@ -22,10 +22,11 @@ interface InitialRecipe {
 const Home = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [initialRecipes, setInitialRecipes] = useState<InitialRecipe[]>([]);
-  
+  const [isLoading, setIsLoading] = useState(true); // Add this line
 
   useEffect(() => {
     const fetchRecipes = async () => {
+      setIsLoading(true); // Add this line
       try {
         const recipes = await fetchInitial30Recipes();
         const mappedRecipes: InitialRecipe[] = recipes.map((recipe: any) => ({
@@ -39,6 +40,8 @@ const Home = () => {
         setInitialRecipes(mappedRecipes);
       } catch (error) {
         console.error("Error fetching initial recipes:", error);
+      } finally {
+        setIsLoading(false); // Add this line
       }
     };
     fetchRecipes();
@@ -180,9 +183,25 @@ const Home = () => {
             <h2 className="text-2xl mt-4">Suggested Recipes</h2>
           </div>
           <div className="mt-6 grid grid-cols-3 gap-10">
-            {initialRecipes.map((recipe) => (
-              <RecipeCard key={recipe.id} {...recipe} />
-            ))}
+            {isLoading
+              ? // Show skeleton loading cards
+                Array(6)
+                  .fill(0)
+                  .map((_, index) => (
+                    <RecipeCard
+                      key={`skeleton-${index}`}
+                      isLoading={true}
+                      id=""
+                      name=""
+                      calories=""
+                      prepTime=""
+                      imageUrl=""
+                    />
+                  ))
+              : // Show actual recipe cards
+                initialRecipes.map((recipe) => (
+                  <RecipeCard key={recipe.id} {...recipe} isLoading={false} />
+                ))}
           </div>
         </div>
       </div>

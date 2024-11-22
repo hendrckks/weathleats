@@ -8,6 +8,7 @@ interface RecipeCardProps {
   prepTime: string;
   imageUrl: string;
   id: string;
+  isLoading?: boolean;
 }
 
 const RecipeCard: React.FC<RecipeCardProps> = ({
@@ -16,6 +17,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   prepTime,
   imageUrl,
   id,
+  isLoading = false,
 }) => {
   const [isLiked, setIsLiked] = useState(false);
 
@@ -24,6 +26,29 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
     e.stopPropagation();
     setIsLiked(!isLiked);
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full flex flex-col rounded-md relative">
+        <div className="animate-pulse">
+          {/* Skeleton for image */}
+          <div className="h-[315px] w-full bg-[#e7e9e2] rounded-lg" />
+
+          {/* Skeleton for time and calories indicators */}
+          <div className="absolute top-4 left-2 flex items-center space-x-2 z-30">
+            <div className="w-20 h-6 bg-[#e7e9e2] rounded-xl" />
+            <div className="w-20 h-6 bg-[#e7e9e2] rounded-xl" />
+          </div>
+
+          {/* Skeleton for like button */}
+          <div className="absolute top-4 right-6 w-7 h-7 bg-gray-200 rounded-full" />
+
+          {/* Skeleton for title */}
+          <div className="mt-3 h-6 bg-[#e7e9e2] rounded w-3/4" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Link to={`/recipe/${id}`}>
@@ -85,16 +110,24 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             <span className="text-xs">{calories ?? "N/A"} Cal</span>
           </div>
         </div>
-        <img
+        <motion.img
           src={imageUrl}
           alt={name}
           className="h-[315px] object-cover w-full rounded-lg"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
         />
-        <span className="text-base mt-3">
+        <motion.span
+          className="text-base mt-3"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
           {name.charAt(0).toUpperCase() + name.slice(1)}
-        </span>
+        </motion.span>
         <button
-          className={`absolute top-4 right-6 bg-transparent rounded-full transition-all duration-300 ease-in-out transform hover:scale-105`}
+          className="absolute top-4 right-6 bg-transparent rounded-full transition-all duration-300 ease-in-out transform hover:scale-105"
           onClick={handleLikeClick}
         >
           <svg
