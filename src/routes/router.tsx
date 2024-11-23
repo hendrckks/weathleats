@@ -59,7 +59,7 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "/recipe/:id",
+        path: "/recipes/:id",
         element: <RecipePage />
       }
     ],

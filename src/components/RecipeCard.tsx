@@ -32,16 +32,17 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
       <div className="w-full flex flex-col rounded-md relative">
         <div className="animate-pulse">
           {/* Skeleton for image */}
+          
           <div className="h-[315px] w-full bg-[#e7e9e2] rounded-lg" />
 
           {/* Skeleton for time and calories indicators */}
-          <div className="absolute top-4 left-2 flex items-center space-x-2 z-30">
+          <div className="absolute top-4 left-2 flex items-center space-x-2 z-50">
             <div className="w-20 h-6 bg-[#e7e9e2] rounded-xl" />
             <div className="w-20 h-6 bg-[#e7e9e2] rounded-xl" />
           </div>
 
           {/* Skeleton for like button */}
-          <div className="absolute top-4 right-6 w-7 h-7 bg-gray-200 rounded-full" />
+          <div className="absolute top-4 right-6 w-7 h-7 bg-gray-500 rounded-full" />
 
           {/* Skeleton for title */}
           <div className="mt-3 h-6 bg-[#e7e9e2] rounded w-3/4" />
@@ -51,7 +52,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   }
 
   return (
-    <Link to={`/recipe/${id}`}>
+    <Link to={`/recipes/${id}`}>
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}

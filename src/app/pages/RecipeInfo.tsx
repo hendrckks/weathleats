@@ -222,14 +222,14 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
           </div>
 
           {/* Instructions Section */}
-          <div className="flex-1 mt-5">
+          <div className="flex-1">
             <h2 className="text-xl font-medium text-textBlack mb-4">
               Instructions
             </h2>
             <div className="space-y-12">
               {recipe.instructions?.map((instruction, index) => (
                 <div key={index}>
-                  <div className="text-sm text-gray-500 mb-2">
+                  <div className="text-base text-gray-500 mb-2">
                     Step {instruction.step}/{recipe.instructions?.length}
                   </div>
                   {/* <h3 className="text-lg text-textBlack font-medium mb-2">
