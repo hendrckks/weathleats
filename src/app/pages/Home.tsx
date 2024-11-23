@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ChevronDown,
   Heart,
@@ -12,7 +12,7 @@ import RecipeCard from "../../components/RecipeCard";
 import { Link } from "react-router-dom";
 import {
   fetchPaginatedRecipes,
-  getTotalRecipesCount,
+  // getTotalRecipesCount,
   searchRecipes,
 } from "../../lib/firebase/firestore";
 import { useFirebaseCache } from "../../lib/cache/cacheUtils";
@@ -31,13 +31,15 @@ interface InitialRecipe {
 const Home = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, _setTotalPages] = useState(1);
   const [initialRecipes, setInitialRecipes] = useState<InitialRecipe[]>([]);
   const [filteredRecipes, setFilteredRecipes] = useState<InitialRecipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { fetchWithCache } = useFirebaseCache();
   const RECIPES_PER_PAGE = 30;
   const [sortOption, setSortOption] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<InitialRecipe[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const [filters, setFilters] = useState({
     types: [] as string[],
@@ -45,20 +47,25 @@ const Home = () => {
   });
 
   useEffect(() => {
-    const fetchTotalPages = async () => {
+    const fetchRecipes = async () => {
+      setIsLoading(true);
       try {
-        const totalRecipes = await fetchWithCache(
-          "total-recipes-count",
-          getTotalRecipesCount,
-          1000 * 60 * 5 // 5 minutes cache
+        const recipes = await fetchWithCache(
+          `recipes-page-${currentPage}`,
+          () => fetchPaginatedRecipes(currentPage, RECIPES_PER_PAGE),
+          1000 * 60 * 60 // 1 hour
         );
-        setTotalPages(Math.ceil(totalRecipes / RECIPES_PER_PAGE));
+        const mappedRecipes = mapRecipes(recipes);
+        setInitialRecipes(mappedRecipes);
+        setFilteredRecipes(mappedRecipes);
       } catch (error) {
-        console.error("Error fetching total pages:", error);
+        console.error("Error fetching recipes:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
-    fetchTotalPages();
-  }, []);
+    fetchRecipes();
+  }, [currentPage]);
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -132,18 +139,40 @@ const Home = () => {
     });
   };
 
-  const handleSearch = async (searchTerm: string) => {
+  const handleSearch = useCallback(async (searchTerm: string) => {
     setIsLoading(true);
+    setIsSearching(true);
     try {
       const searchResults = await searchRecipes(searchTerm);
       const mappedResults = mapRecipes(searchResults);
-      setFilteredRecipes(mappedResults);
+      setSearchResults(mappedResults);
     } catch (error) {
       console.error("Error searching recipes:", error);
     } finally {
       setIsLoading(false);
+      setIsSearching(false);
     }
-  };
+  }, []);
+
+  const handleSearchInputChange = useCallback(async (searchTerm: string) => {
+    if (searchTerm.length >= 4) {
+      setIsSearching(true);
+      setIsLoading(true);
+      try {
+        const searchResults = await searchRecipes(searchTerm);
+        const mappedResults = mapRecipes(searchResults);
+        setSearchResults(mappedResults);
+      } catch (error) {
+        console.error("Error searching recipes:", error);
+      } finally {
+        setIsLoading(false);
+        setIsSearching(false);
+      }
+    } else {
+      setSearchResults([]);
+      setIsSearching(false);
+    }
+  }, []);
 
   const handleSort = (option: string) => {
     setSortOption(option);
@@ -182,6 +211,7 @@ const Home = () => {
         filters={filters}
         onFilterChange={handleFilterChange}
         onSearch={handleSearch}
+        onSearchInputChange={handleSearchInputChange}
       />
       <div className="text-textBlack ml-[317px] mb-10">
         <div className="p-10">
@@ -352,15 +382,17 @@ const Home = () => {
               </div>
             </div>
 
-            <h2 className="text-2xl mt-4">
-              {filters.types.length > 0 || filters.categories.length > 0
+            <h2 className="text-xl mt-2">
+              {isSearching || searchResults.length > 0
+                ? "Search Results"
+                : filters.types.length > 0 || filters.categories.length > 0
                 ? "Filtered Recipes"
                 : "Suggested Recipes"}
             </h2>
-          </div>
-          <div className="mt-6 grid grid-cols-3 gap-10">
-            {isLoading
-              ? Array(6)
+
+            <div className="grid grid-cols-3 gap-10">
+              {isLoading ? (
+                Array(6)
                   .fill(0)
                   .map((_, index) => (
                     <RecipeCard
@@ -373,15 +405,30 @@ const Home = () => {
                       imageUrl=""
                     />
                   ))
-              : filteredRecipes.map((recipe) => (
+              ) : isSearching || searchResults.length > 0 ? (
+                searchResults.length > 0 ? (
+                  searchResults.map((recipe) => (
+                    <RecipeCard key={recipe.id} {...recipe} isLoading={false} />
+                  ))
+                ) : (
+                  <div className="col-span-3 text-center">
+                    No search results found.
+                  </div>
+                )
+              ) : (
+                filteredRecipes.map((recipe) => (
                   <RecipeCard key={recipe.id} {...recipe} isLoading={false} />
-                ))}
+                ))
+              )}
+            </div>
+            {!isSearching && searchResults.length === 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            )}
           </div>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
         </div>
       </div>
     </div>

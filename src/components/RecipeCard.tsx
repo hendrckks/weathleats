@@ -69,7 +69,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             <div className="w-20 h-6 bg-gray-300 rounded-xl" />
             <div className="w-20 h-6 bg-gray-300 rounded-xl" />
           </div>
-          <div className="absolute top-4 right-6 w-7 h-7 bg-gray-500 rounded-full" />
+          <div className="absolute top-4 right-6 w-7 h-7 bg-gray-300 rounded-full" />
           <div className="mt-3 h-6 bg-[#e7e9e2] rounded w-3/4" />
         </div>
       </div>

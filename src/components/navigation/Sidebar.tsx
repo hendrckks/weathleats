@@ -1,5 +1,5 @@
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface SidebarProps {
@@ -9,21 +9,42 @@ interface SidebarProps {
   };
   onFilterChange: (filterType: "types" | "categories", value: string) => void;
   onSearch: (searchTerm: string) => void;
+  onSearchInputChange: (searchTerm: string) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   filters,
   onFilterChange,
   onSearch,
+  onSearchInputChange,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearch(searchTerm);
-    navigate("/"); 
-  };
+  const handleSearch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      onSearch(searchTerm);
+      navigate("/");
+    },
+    [searchTerm, onSearch, navigate]
+  );
+
+  const debouncedSearchInputChange = useCallback(
+    debounce((term: string) => {
+      if (term.length >= 4) {
+        onSearchInputChange(term);
+      } else if (term.length === 0) {
+        onSearchInputChange(""); // Clear search results when input is empty
+      }
+    }, 300),
+    [onSearchInputChange]
+  );
+
+  useEffect(() => {
+    debouncedSearchInputChange(searchTerm);
+  }, [searchTerm, debouncedSearchInputChange]);
+
   return (
     <div className="fixed left-0 top-0 flex h-[100vh] w-72 flex-col bg-background border-r border-r-primary/50 p-6 space-y-6">
       {/* Search Section */}
@@ -112,5 +133,19 @@ const Sidebar: React.FC<SidebarProps> = ({
     </div>
   );
 };
+
+// Debounce function
+function debounce<F extends (...args: any[]) => any>(func: F, wait: number) {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+
+  return function (this: any, ...args: Parameters<F>) {
+    const context = this;
+
+    if (timeout !== null) {
+      clearTimeout(timeout);
+    }
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+}
 
 export default Sidebar;

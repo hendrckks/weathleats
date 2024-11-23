@@ -206,20 +206,31 @@ export const filterRecipesByTypeAndCategory = async (
   }
 };
 
-export const searchRecipes = async (searchTerm: string) => {
+export const searchRecipes = async (searchTerm: string): Promise<Recipe[]> => {
   try {
     const recipesRef = collection(db, "recipes");
     const q = query(
       recipesRef,
-      where("name", ">=", searchTerm),
-      where("name", "<=", searchTerm + "\uf8ff")
+      where("name", ">=", searchTerm.toLowerCase()),
+      where("name", "<=", searchTerm.toLowerCase() + "\uf8ff"),
+      orderBy("name"),
+      limit(30)
     );
     const querySnapshot = await getDocs(q);
 
-    const searchedRecipes = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const searchedRecipes: Recipe[] = [];
+    querySnapshot.forEach((doc) => {
+      try {
+        const recipeData = doc.data();
+        const validatedRecipe = recipeSchema.parse({
+          id: doc.id,
+          ...recipeData,
+        });
+        searchedRecipes.push(validatedRecipe);
+      } catch (error) {
+        console.error(`Error validating recipe ${doc.id}:`, error);
+      }
+    });
 
     return searchedRecipes;
   } catch (error) {
