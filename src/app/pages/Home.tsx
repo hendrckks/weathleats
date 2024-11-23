@@ -3,7 +3,7 @@ import {
   ChevronDown,
   Heart,
   NotebookPen,
-  ShoppingBasket,
+  // ShoppingBasket,
   Target,
   X,
 } from "lucide-react";
@@ -17,7 +17,7 @@ import {
 } from "../../lib/firebase/firestore";
 import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
-import { migrateRecipes } from "../../lib/migrate";
+// import { migrateRecipes } from "../../lib/migrate";
 
 interface InitialRecipe {
   id: string;
