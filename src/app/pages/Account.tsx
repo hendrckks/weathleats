@@ -160,12 +160,12 @@ const Account: React.FC = () => {
           <h3 className="text-xl font-medium text-textBlack mb-2">
             No Favorite Recipes Yet
           </h3>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600 mb-4 text-sm">
             Start exploring and add recipes to your favorites!
           </p>
           <button
             onClick={() => navigate("/")}
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+            className="px-4 py-2 bg-primary text-sm text-white rounded-md hover:bg-primary/90 transition-colors"
           >
             Explore Recipes
           </button>

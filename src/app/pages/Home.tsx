@@ -220,7 +220,7 @@ const Home = () => {
               <div>
                 <div>
                   <h1 className="text-5xl">
-                    1000 Plus performance <br /> driven recipes for{" "}
+                    1000 Plus performance <br /> driven recipes for
                     <span className="text-[#4b5942]">athletes.</span>
                   </h1>
                 </div>
