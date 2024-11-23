@@ -9,7 +9,13 @@ import {
 import Sidebar from "../../components/navigation/Sidebar";
 import RecipeCard from "../../components/RecipeCard";
 import { Link } from "react-router-dom";
-import { fetchInitial30Recipes } from "../../lib/firebase/firestore";
+import {
+  // fetchInitial30Recipes,
+  fetchPaginatedRecipes,
+  getTotalRecipesCount,
+} from "../../lib/firebase/firestore";
+import { useFirebaseCache } from "../../lib/cache/cacheUtils";
+import Pagination from "../../components/navigation/Pagination";
 
 interface InitialRecipe {
   id: string;
@@ -21,14 +27,39 @@ interface InitialRecipe {
 
 const Home = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [initialRecipes, setInitialRecipes] = useState<InitialRecipe[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // Add this line
+  const [isLoading, setIsLoading] = useState(true);
+  const { fetchWithCache } = useFirebaseCache();
+  const RECIPES_PER_PAGE = 30;
+
+  useEffect(() => {
+    const fetchTotalPages = async () => {
+      try {
+        const totalRecipes = await fetchWithCache(
+          "total-recipes-count",
+          getTotalRecipesCount,
+          1000 * 60 * 5 // 5 minutes cache
+        );
+        setTotalPages(Math.ceil(totalRecipes / RECIPES_PER_PAGE));
+      } catch (error) {
+        console.error("Error fetching total pages:", error);
+      }
+    };
+    fetchTotalPages();
+  }, []);
 
   useEffect(() => {
     const fetchRecipes = async () => {
-      setIsLoading(true); // Add this line
+      setIsLoading(true);
       try {
-        const recipes = await fetchInitial30Recipes();
+        const recipes = await fetchWithCache(
+          `recipes-page-${currentPage}`,
+          () => fetchPaginatedRecipes(currentPage, RECIPES_PER_PAGE),
+          1000 * 60 * 60 // 1 hour
+        );
+
         const mappedRecipes: InitialRecipe[] = recipes.map((recipe: any) => ({
           id: recipe.id,
           name: recipe.name || "Unnamed Recipe",
@@ -39,13 +70,18 @@ const Home = () => {
         }));
         setInitialRecipes(mappedRecipes);
       } catch (error) {
-        console.error("Error fetching initial recipes:", error);
+        console.error("Error fetching recipes:", error);
       } finally {
-        setIsLoading(false); // Add this line
+        setIsLoading(false);
       }
     };
     fetchRecipes();
-  }, []);
+  }, [currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="min-h-screen pt-20">
@@ -203,6 +239,11 @@ const Home = () => {
                   <RecipeCard key={recipe.id} {...recipe} isLoading={false} />
                 ))}
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </div>
       </div>
     </div>

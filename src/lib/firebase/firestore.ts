@@ -11,6 +11,7 @@ import {
   orderBy,
   limit,
   where,
+  startAfter,
 } from "firebase/firestore";
 import {
   ref,
@@ -196,6 +197,58 @@ export const searchRecipes = async (searchTerm: string) => {
     return searchedRecipes;
   } catch (error) {
     console.error("Error searching recipes:", error);
+    throw error;
+  }
+};
+
+export const getTotalRecipesCount = async (): Promise<number> => {
+  try {
+    const recipesRef = collection(db, "recipes");
+    const snapshot = await getDocs(recipesRef);
+    return snapshot.size;
+  } catch (error) {
+    console.error("Error getting total recipes count:", error);
+    throw error;
+  }
+};
+
+export const fetchPaginatedRecipes = async (
+  page: number,
+  recipesPerPage: number = 30
+) => {
+  try {
+    const recipesRef = collection(db, "recipes");
+    const q = query(
+      recipesRef,
+      orderBy("createdAt", "desc"),
+      limit(recipesPerPage)
+    );
+
+    // Get the snapshot of the first page
+    const querySnapshot = await getDocs(q);
+    const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+    // If not the first page, use startAfter
+    if (page > 1) {
+      const nextQuery = query(
+        recipesRef,
+        orderBy("createdAt", "desc"),
+        startAfter(lastVisible),
+        limit(recipesPerPage)
+      );
+      const nextSnapshot = await getDocs(nextQuery);
+      return nextSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+    }
+
+    return querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  } catch (error) {
+    console.error("Error fetching paginated recipes:", error);
     throw error;
   }
 };
