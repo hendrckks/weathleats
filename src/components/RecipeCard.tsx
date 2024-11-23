@@ -1,10 +1,13 @@
 import { motion } from "framer-motion";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useFavorites } from "../context/FavouritesContext";
+import { toast } from "../hooks/useToast";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 
 interface RecipeCardProps {
   name: string;
-  calories: number | string | undefined;
+  calories: number | undefined | string;
   prepTime: string;
   imageUrl: string;
   id: string;
@@ -19,32 +22,47 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   id,
   isLoading = false,
 }) => {
-  const [isLiked, setIsLiked] = useState(false);
+  const { user } = useAuth();
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
+  const [imageError, setImageError] = useState(false);
 
-  const handleLikeClick = (e: React.MouseEvent) => {
+  const navigate = useNavigate();
+
+  const handleLikeClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsLiked(!isLiked);
+
+    if (!user) {
+      toast({
+        title: "",
+        variant: "warning",
+        description: "Sign In to add recipes to favourites",
+        duration: 5000,
+      });
+      navigate("/login");
+    } else {
+      if (isFavorite(id)) {
+        await removeFavorite(id);
+      } else {
+        await addFavorite(id);
+      }
+    }
+  };
+
+  const handleImageError = () => {
+    setImageError(true);
   };
 
   if (isLoading) {
     return (
       <div className="w-full flex flex-col rounded-md relative">
         <div className="animate-pulse">
-          {/* Skeleton for image */}
-          
           <div className="h-[315px] w-full bg-[#e7e9e2] rounded-lg" />
-
-          {/* Skeleton for time and calories indicators */}
           <div className="absolute top-4 left-2 flex items-center space-x-2 z-50">
             <div className="w-20 h-6 bg-gray-300 rounded-xl" />
             <div className="w-20 h-6 bg-gray-300 rounded-xl" />
           </div>
-
-          {/* Skeleton for like button */}
           <div className="absolute top-4 right-6 w-7 h-7 bg-gray-500 rounded-full" />
-
-          {/* Skeleton for title */}
           <div className="mt-3 h-6 bg-[#e7e9e2] rounded w-3/4" />
         </div>
       </div>
@@ -52,7 +70,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   }
 
   return (
-    <Link to={`/recipes/${id}`}>
+    <Link to={`/recipes/${id}`} className="block w-full">
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -66,7 +84,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
         className="w-full flex flex-col rounded-md cursor-pointer relative"
       >
         <div className="absolute top-4 left-2 flex items-center space-x-2 z-30">
-          <div className="flex items-center backdrop-blur-lg bg-white/30 px-1 py-1 rounded-xl text-textWhite">
+          <div className="flex items-center backdrop-blur-lg bg-white/30 px-1 py-1 rounded-xl text-white">
             <svg
               className="w-4 h-4 mr-1"
               viewBox="0 0 24 24"
@@ -90,7 +108,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             </svg>
             <span className="text-xs">{prepTime} Mins</span>
           </div>
-          <div className="flex items-center backdrop-blur-3xl bg-white/30 px-1 py-1 rounded-xl text-textWhite">
+          <div className="flex items-center backdrop-blur-3xl bg-white/30 px-1 py-1 rounded-xl text-white">
             <svg
               className="w-4 h-4 mr-1"
               viewBox="0 0 24 24"
@@ -111,16 +129,22 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             <span className="text-xs">{calories ?? "N/A"} Cal</span>
           </div>
         </div>
-        <motion.img
-          src={imageUrl}
-          alt={name}
-          className="h-[315px] object-cover w-full rounded-lg"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        />
+        <div className="relative w-full h-[315px] rounded-lg overflow-hidden">
+          {imageError ? (
+            <div className="absolute inset-0 w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+              Image not available
+            </div>
+          ) : (
+            <img
+              src={imageUrl}
+              alt={name}
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={handleImageError}
+            />
+          )}
+        </div>
         <motion.span
-          className="text-base mt-3"
+          className="text-base mt-3 text-gray-800"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -134,7 +158,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className={`h-7 w-7 transition-colors duration-300 ease-in-out ${
-              isLiked
+              isFavorite(id)
                 ? "fill-current text-primary stroke-white stroke-2"
                 : "text-white stroke-white stroke-2"
             }`}

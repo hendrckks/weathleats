@@ -1,26 +1,81 @@
-// components/Account.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useFavorites } from "../../context/FavouritesContext";
+import RecipeCard from "../../components/RecipeCard";
 import { signOut } from "../../lib/firebase/auth";
-// import RecipeCard from "../../components/RecipeCard";
-import { ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { fetchRecipesByIds } from "../../lib/firebase/firestore";
+import { Recipe } from "../../types/firestore";
+import { useFirebaseCache } from "../../lib/cache/cacheUtils";
+import Pagination from "../../components/navigation/Pagination";
+import { Loader2 } from "lucide-react";
+
+const RECIPES_PER_PAGE = 8;
 
 const Account: React.FC = () => {
   const { user, loading, setUser } = useAuth();
+  const { favorites } = useFavorites();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [favoriteRecipes, setFavoriteRecipes] = useState<Recipe[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const { fetchWithCache } = useFirebaseCache();
+
+  const navigate = useNavigate();
+
+  const totalPages = Math.ceil(favorites.length / RECIPES_PER_PAGE);
+
+  useEffect(() => {
+    const fetchFavoriteRecipes = async () => {
+      if (user && favorites.length > 0) {
+        setIsLoading(true);
+        const startIndex = (currentPage - 1) * RECIPES_PER_PAGE;
+        const endIndex = startIndex + RECIPES_PER_PAGE;
+        const pageIds = favorites.slice(startIndex, endIndex);
+
+        try {
+          const recipes = await fetchWithCache(
+            `favorite-recipes-${pageIds.join("-")}`,
+            () => fetchRecipesByIds(pageIds),
+            1000 * 60 * 5 // 5 minutes cache
+          );
+          setFavoriteRecipes(recipes);
+        } catch (error) {
+          console.error("Error fetching favorite recipes:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setFavoriteRecipes([]);
+        setIsLoading(false);
+      }
+    };
+
+    fetchFavoriteRecipes();
+  }, [user, favorites, currentPage]);
 
   const handleSignOut = async () => {
     try {
       await signOut();
       setUser(null);
+      navigate("/");
     } catch (error) {
       console.error("Error signing out:", error);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
 
-  // Calculate joined date
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   const joinedDate = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString("en-US", {
         month: "short",
@@ -32,7 +87,6 @@ const Account: React.FC = () => {
   return (
     <div className="p-8 md:p-16 max-w-7xl mx-auto">
       <div className="flex flex-col gap-20 mx-1 mt-20">
-        {/* Header Section */}
         <div className="flex justify-between items-start">
           <h1 className="text-5xl font-medium text-gray-800">Your profile</h1>
           <div className="flex items-center gap-4">
@@ -53,15 +107,12 @@ const Account: React.FC = () => {
           </div>
         </div>
 
-        {/* Filters and Content Section */}
         <div className="flex justify-between">
-          {/* Left Sidebar - Filters */}
-          <div className="space-y-6 p-5">
-            {/* Types Section */}
+          <div className="space-y-6 mt-2">
             <div className="space-y-2">
               <h3 className="text-gray-600">Types</h3>
-              <div className="space-y-2">
-                <label className="flex items-center gap-2">
+              <div className="space-y-3 text-sm">
+                <label className="flex items-center gap-2 mt-6">
                   <input type="checkbox" className="rounded" />
                   <span>Vegetarian</span>
                 </label>
@@ -76,10 +127,9 @@ const Account: React.FC = () => {
               </div>
             </div>
 
-            {/* Category Section */}
             <div className="space-y-2">
               <h3 className="text-gray-600">Category</h3>
-              <div className="space-y-2">
+              <div className="text-sm space-y-3">
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="rounded" />
                   <span>Breakfast</span>
@@ -96,21 +146,33 @@ const Account: React.FC = () => {
                   <input type="checkbox" className="rounded" />
                   <span>Dessert</span>
                 </label>
-                <div className="p-3 bg-primary text-textWhite mt-10 rounded-sm text-sm">
+                {/* <div className="p-3 bg-primary text-textWhite mt-10 rounded-sm text-sm">
                   Generate grocery list
-                </div>
+                </div> */}
               </div>
-              {/* <div className="p-3 bg-primary text-textWhite mt-10 rounded-sm text-sm">
-                Generate grocery list
-              </div> */}
             </div>
           </div>
 
-          {/* Right Content Area */}
-          <div className="flex flex-col flex-1 ml-10 p-5">
-            {/* Recipe Count and Sort */}
+          <div className="flex flex-col flex-1 ml-10">
             <div className="flex justify-between items-center mb-6">
-              <p className="text-gray-600">You have ❤️ 1 saved recipe(s)</p>
+              <p className="text-gray-600 flex items-center">
+                You have
+                <span className="mx-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-7 w-7 transition-colors duration-300 ease-in-out fill-current text-primary stroke-textBlack stroke-2"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1}
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    />
+                  </svg>
+                </span>{" "}
+                {favorites.length} saved recipe(s)
+              </p>
               <div className="relative">
                 <div
                   className="p-2 w-fit text-sm rounded-sm bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer hover:bg-primary/30 transition-colors"
@@ -118,20 +180,50 @@ const Account: React.FC = () => {
                   onMouseLeave={() => setIsDropdownOpen(false)}
                 >
                   Sort by
-                  <ChevronDown
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
                     className={`h-4 w-4 transition-transform duration-200 ${
                       isDropdownOpen ? "rotate-180" : ""
                     }`}
-                  />
-                  {/* Dropdown Menu */}
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
                   {isDropdownOpen && (
                     <div className="absolute left-0 top-full mt-[2px] bg-background border border-primary/40 shadow-lg rounded-sm w-56 py-1 px-1 z-50">
                       <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer p-2">
-                        <ChevronDown className="h-4 w-4" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
                         Calories: High - Low
                       </div>
                       <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer">
-                        <ChevronDown className="h-4 w-4 rotate-180" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 rotate-180"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
                         Calories: Low - High
                       </div>
                       <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer">
@@ -188,14 +280,48 @@ const Account: React.FC = () => {
               </div>
             </div>
 
-            {/* Recipe Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-              {/* <RecipeCard /> */}
+              {isLoading ? (
+                // Show skeleton loading for recipes
+                Array(RECIPES_PER_PAGE)
+                  .fill(0)
+                  .map((_, index) => (
+                    <RecipeCard
+                      key={`skeleton-${index}`}
+                      id=""
+                      name=""
+                      calories={0}
+                      prepTime=""
+                      imageUrl=""
+                      isLoading={true}
+                    />
+                  ))
+              ) : favoriteRecipes.length > 0 ? (
+                favoriteRecipes.map((recipe) => (
+                  <RecipeCard
+                    key={recipe.id}
+                    id={recipe.id}
+                    name={recipe.name}
+                    calories={recipe.nutritionFacts?.calories}
+                    prepTime={recipe.prepTime?.toString() || "N/A"}
+                    imageUrl={recipe.imageUrls?.[0] || ""}
+                  />
+                ))
+              ) : (
+                <p>No favorite recipes found.</p>
+              )}
             </div>
+
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            )}
           </div>
         </div>
 
-        {/* Sign Out Button */}
         <div className="">
           <button
             onClick={handleSignOut}

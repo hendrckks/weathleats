@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { fetchRecipeById } from "../../lib/firebase/firestore";
 import { Recipe } from "../../types/firestore";
 import RecipeInfo from "./RecipeInfo";
+import { Loader2 } from "lucide-react";
 
 const RecipePage = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,7 +28,11 @@ const RecipePage = () => {
   }, [id]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   if (!recipe) {

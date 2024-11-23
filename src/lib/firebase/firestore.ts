@@ -131,6 +131,33 @@ const deleteRecipeImages = async (
   }
 };
 
+export const fetchRecipesByIds = async (ids: string[]): Promise<Recipe[]> => {
+  try {
+    const recipesRef = collection(db, "recipes");
+    const q = query(recipesRef, where("id", "in", ids));
+    const querySnapshot = await getDocs(q);
+
+    const recipes: Recipe[] = [];
+    querySnapshot.forEach((doc) => {
+      const recipeData = doc.data();
+      try {
+        const validatedRecipe = recipeSchema.parse({
+          id: doc.id,
+          ...recipeData,
+        });
+        recipes.push(validatedRecipe);
+      } catch (error) {
+        console.error(`Error validating recipe ${doc.id}:`, error);
+      }
+    });
+
+    return recipes;
+  } catch (error) {
+    console.error("Error fetching recipes by ids:", error);
+    throw error;
+  }
+};
+
 export const fetchInitial30Recipes = async () => {
   try {
     const recipesRef = collection(db, "recipes");
