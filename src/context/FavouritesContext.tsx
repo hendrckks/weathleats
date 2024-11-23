@@ -15,8 +15,7 @@ import {
   arrayRemove,
   writeBatch,
 } from "firebase/firestore";
-import { debounce } from "lodash";
-
+import debounce from "lodash/debounce";
 interface FavoritesContextType {
   favorites: string[];
   addFavorite: (recipeId: string) => void;
