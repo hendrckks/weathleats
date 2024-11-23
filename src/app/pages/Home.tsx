@@ -10,7 +10,6 @@ import Sidebar from "../../components/navigation/Sidebar";
 import RecipeCard from "../../components/RecipeCard";
 import { Link } from "react-router-dom";
 import {
-  // fetchInitial30Recipes,
   fetchPaginatedRecipes,
   getTotalRecipesCount,
 } from "../../lib/firebase/firestore";
@@ -23,6 +22,8 @@ interface InitialRecipe {
   calories: number | undefined;
   prepTime: string;
   imageUrl: string;
+  types: string[];
+  category: string[];
 }
 
 const Home = () => {
@@ -30,9 +31,15 @@ const Home = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [initialRecipes, setInitialRecipes] = useState<InitialRecipe[]>([]);
+  const [filteredRecipes, setFilteredRecipes] = useState<InitialRecipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { fetchWithCache } = useFirebaseCache();
   const RECIPES_PER_PAGE = 30;
+
+  const [filters, setFilters] = useState({
+    types: [] as string[],
+    categories: [] as string[],
+  });
 
   useEffect(() => {
     const fetchTotalPages = async () => {
@@ -59,16 +66,9 @@ const Home = () => {
           () => fetchPaginatedRecipes(currentPage, RECIPES_PER_PAGE),
           1000 * 60 * 60 // 1 hour
         );
-
-        const mappedRecipes: InitialRecipe[] = recipes.map((recipe: any) => ({
-          id: recipe.id,
-          name: recipe.name || "Unnamed Recipe",
-          calories: recipe.nutritionFacts?.calories || "N/A",
-          prepTime: recipe.prepTime?.toString() || "N/A",
-          imageUrl: recipe.imageUrls?.[0] || "",
-          types: recipe.type,
-        }));
+        const mappedRecipes = mapRecipes(recipes);
         setInitialRecipes(mappedRecipes);
+        setFilteredRecipes(mappedRecipes);
       } catch (error) {
         console.error("Error fetching recipes:", error);
       } finally {
@@ -78,14 +78,60 @@ const Home = () => {
     fetchRecipes();
   }, [currentPage]);
 
+  useEffect(() => {
+    if (filters.types.length > 0 || filters.categories.length > 0) {
+      const filtered = initialRecipes.filter((recipe) => {
+        const typeMatch =
+          filters.types.length === 0 ||
+          recipe.types.some((type) => filters.types.includes(type));
+        const categoryMatch =
+          filters.categories.length === 0 ||
+          recipe.category.some((cat) => filters.categories.includes(cat));
+        return typeMatch && categoryMatch;
+      });
+      setFilteredRecipes(filtered);
+    } else {
+      setFilteredRecipes(initialRecipes);
+    }
+  }, [filters, initialRecipes]);
+
+  const mapRecipes = (recipes: any[]): InitialRecipe[] => {
+    return recipes.map((recipe: any) => ({
+      id: recipe.id,
+      name: recipe.name || "Unnamed Recipe",
+      calories: recipe.nutritionFacts?.calories || "N/A",
+      prepTime: recipe.prepTime?.toString() || "N/A",
+      imageUrl: recipe.imageUrls?.[0] || "",
+      types: recipe.type || [],
+      category: recipe.category || [],
+    }));
+  };
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleFilterChange = (
+    filterType: "types" | "categories",
+    value: string
+  ) => {
+    setFilters((prevFilters) => {
+      const updatedFilters = { ...prevFilters };
+      if (updatedFilters[filterType].includes(value)) {
+        updatedFilters[filterType] = updatedFilters[filterType].filter(
+          (item) => item !== value
+        );
+      } else {
+        updatedFilters[filterType] = [...updatedFilters[filterType], value];
+      }
+      return updatedFilters;
+    });
+  };
+
   return (
     <div className="min-h-screen pt-20">
-      <Sidebar />
+      <Sidebar filters={filters} onFilterChange={handleFilterChange} />
       <div className="text-textBlack ml-[317px] mb-10">
         <div className="p-10">
           <div className="flex flex-col gap-5">
@@ -216,12 +262,15 @@ const Home = () => {
               </div>
             </div>
 
-            <h2 className="text-2xl mt-4">Suggested Recipes</h2>
+            <h2 className="text-2xl mt-4">
+              {filters.types.length > 0 || filters.categories.length > 0
+                ? "Filtered Recipes"
+                : "Suggested Recipes"}
+            </h2>
           </div>
           <div className="mt-6 grid grid-cols-3 gap-10">
             {isLoading
-              ? // Show skeleton loading cards
-                Array(6)
+              ? Array(6)
                   .fill(0)
                   .map((_, index) => (
                     <RecipeCard
@@ -234,8 +283,7 @@ const Home = () => {
                       imageUrl=""
                     />
                   ))
-              : // Show actual recipe cards
-                initialRecipes.map((recipe) => (
+              : filteredRecipes.map((recipe) => (
                   <RecipeCard key={recipe.id} {...recipe} isLoading={false} />
                 ))}
           </div>

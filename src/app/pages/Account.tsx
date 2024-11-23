@@ -8,7 +8,7 @@ import { fetchRecipesByIds } from "../../lib/firebase/firestore";
 import { Recipe } from "../../types/firestore";
 import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
-import { Loader2 } from "lucide-react";
+import { Loader2, Heart } from "lucide-react";
 
 const RECIPES_PER_PAGE = 8;
 
@@ -17,29 +17,32 @@ const Account: React.FC = () => {
   const { favorites } = useFavorites();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [favoriteRecipes, setFavoriteRecipes] = useState<Recipe[]>([]);
+  const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const { fetchWithCache } = useFirebaseCache();
 
   const navigate = useNavigate();
 
-  const totalPages = Math.ceil(favorites.length / RECIPES_PER_PAGE);
+  const [filters, setFilters] = useState({
+    types: [] as string[],
+    categories: [] as string[],
+  });
+
+  const totalPages = Math.ceil(filteredRecipes.length / RECIPES_PER_PAGE);
 
   useEffect(() => {
     const fetchFavoriteRecipes = async () => {
       if (user && favorites.length > 0) {
         setIsLoading(true);
-        const startIndex = (currentPage - 1) * RECIPES_PER_PAGE;
-        const endIndex = startIndex + RECIPES_PER_PAGE;
-        const pageIds = favorites.slice(startIndex, endIndex);
-
         try {
           const recipes = await fetchWithCache(
-            `favorite-recipes-${pageIds.join("-")}`,
-            () => fetchRecipesByIds(pageIds),
+            `favorite-recipes-${favorites.join("-")}`,
+            () => fetchRecipesByIds(favorites),
             1000 * 60 * 5 // 5 minutes cache
           );
           setFavoriteRecipes(recipes);
+          setFilteredRecipes(recipes);
         } catch (error) {
           console.error("Error fetching favorite recipes:", error);
         } finally {
@@ -47,12 +50,39 @@ const Account: React.FC = () => {
         }
       } else {
         setFavoriteRecipes([]);
+        setFilteredRecipes([]);
         setIsLoading(false);
       }
     };
 
     fetchFavoriteRecipes();
-  }, [user, favorites, currentPage]);
+  }, [user, favorites]);
+
+  useEffect(() => {
+    const applyFilters = () => {
+      if (filters.types.length === 0 && filters.categories.length === 0) {
+        setFilteredRecipes(favoriteRecipes);
+      } else {
+        const filtered = favoriteRecipes.filter((recipe) => {
+          const typeMatch =
+            filters.types.length === 0 ||
+            (recipe.type &&
+              filters.types.some((type) => recipe.type?.includes(type)));
+          const categoryMatch =
+            filters.categories.length === 0 ||
+            (recipe.category &&
+              filters.categories.some((category) =>
+                recipe.category?.includes(category)
+              ));
+          return typeMatch && categoryMatch;
+        });
+        setFilteredRecipes(filtered);
+      }
+      setCurrentPage(1);
+    };
+
+    applyFilters();
+  }, [filters, favoriteRecipes]);
 
   const handleSignOut = async () => {
     try {
@@ -66,6 +96,23 @@ const Account: React.FC = () => {
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
+  };
+
+  const handleFilterChange = (
+    filterType: "types" | "categories",
+    value: string
+  ) => {
+    setFilters((prevFilters) => {
+      const updatedFilters = { ...prevFilters };
+      if (updatedFilters[filterType].includes(value)) {
+        updatedFilters[filterType] = updatedFilters[filterType].filter(
+          (item) => item !== value
+        );
+      } else {
+        updatedFilters[filterType] = [...updatedFilters[filterType], value];
+      }
+      return updatedFilters;
+    });
   };
 
   if (loading) {
@@ -83,6 +130,64 @@ const Account: React.FC = () => {
         year: "numeric",
       })
     : "Unknown date";
+
+  const paginatedRecipes = filteredRecipes.slice(
+    (currentPage - 1) * RECIPES_PER_PAGE,
+    currentPage * RECIPES_PER_PAGE
+  );
+
+  const renderContent = () => {
+    if (isLoading) {
+      return Array(RECIPES_PER_PAGE)
+        .fill(0)
+        .map((_, index) => (
+          <RecipeCard
+            key={`skeleton-${index}`}
+            id=""
+            name=""
+            calories={0}
+            prepTime=""
+            imageUrl=""
+            isLoading={true}
+          />
+        ));
+    }
+
+    if (favorites.length === 0) {
+      return (
+        <div className="col-span-2 flex flex-col items-center justify-center py-12 text-center">
+          <Heart className="h-16 w-16 text-gray-300 mb-4" />
+          <h3 className="text-xl font-medium text-gray-800 mb-2">
+            No Favorite Recipes Yet
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Start exploring and add recipes to your favorites!
+          </p>
+          <button
+            onClick={() => navigate("/")}
+            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+          >
+            Explore Recipes
+          </button>
+        </div>
+      );
+    }
+
+    if (paginatedRecipes.length === 0) {
+      return <p>No recipes found matching the selected filters.</p>;
+    }
+
+    return paginatedRecipes.map((recipe) => (
+      <RecipeCard
+        key={recipe.id}
+        id={recipe.id}
+        name={recipe.name}
+        calories={recipe.nutritionFacts?.calories}
+        prepTime={recipe.prepTime?.toString() || "N/A"}
+        imageUrl={recipe.imageUrls?.[0] || ""}
+      />
+    ));
+  };
 
   return (
     <div className="p-8 md:p-16 max-w-7xl mx-auto">
@@ -112,43 +217,36 @@ const Account: React.FC = () => {
             <div className="space-y-2">
               <h3 className="text-gray-600">Types</h3>
               <div className="space-y-3 text-sm">
-                <label className="flex items-center gap-2 mt-6">
-                  <input type="checkbox" className="rounded" />
-                  <span>Vegetarian</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" className="rounded" />
-                  <span>Vegan</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" className="rounded" />
-                  <span>Gluten Free</span>
-                </label>
+                {["Vegetarian", "Vegan", "Gluten Free"].map((type) => (
+                  <label key={type} className="flex items-center gap-2 mt-6">
+                    <input
+                      type="checkbox"
+                      className="rounded"
+                      checked={filters.types.includes(type)}
+                      onChange={() => handleFilterChange("types", type)}
+                    />
+                    <span>{type}</span>
+                  </label>
+                ))}
               </div>
             </div>
 
             <div className="space-y-2">
               <h3 className="text-gray-600">Category</h3>
               <div className="text-sm space-y-3">
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" className="rounded" />
-                  <span>Breakfast</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" className="rounded" />
-                  <span>Lunch</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" className="rounded" />
-                  <span>Dinner</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" className="rounded" />
-                  <span>Dessert</span>
-                </label>
-                {/* <div className="p-3 bg-primary text-textWhite mt-10 rounded-sm text-sm">
-                  Generate grocery list
-                </div> */}
+                {["Breakfast", "Lunch", "Dinner", "Dessert"].map((category) => (
+                  <label key={category} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      className="rounded"
+                      checked={filters.categories.includes(category)}
+                      onChange={() =>
+                        handleFilterChange("categories", category)
+                      }
+                    />
+                    <span>{category}</span>
+                  </label>
+                ))}
               </div>
             </div>
           </div>
@@ -156,22 +254,12 @@ const Account: React.FC = () => {
           <div className="flex flex-col flex-1 ml-10">
             <div className="flex justify-between items-center mb-6">
               <p className="text-gray-600 flex items-center">
-                You have
+                Showing
                 <span className="mx-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-7 w-7 transition-colors duration-300 ease-in-out fill-current text-primary stroke-textBlack stroke-2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1}
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                    />
-                  </svg>
+                  <Heart className="h-5 w-5 text-primary" />
                 </span>{" "}
-                {favorites.length} saved recipe(s)
+                {filteredRecipes.length} of {favoriteRecipes.length} saved
+                recipe(s)
               </p>
               <div className="relative">
                 <div
@@ -281,35 +369,7 @@ const Account: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-              {isLoading ? (
-                // Show skeleton loading for recipes
-                Array(RECIPES_PER_PAGE)
-                  .fill(0)
-                  .map((_, index) => (
-                    <RecipeCard
-                      key={`skeleton-${index}`}
-                      id=""
-                      name=""
-                      calories={0}
-                      prepTime=""
-                      imageUrl=""
-                      isLoading={true}
-                    />
-                  ))
-              ) : favoriteRecipes.length > 0 ? (
-                favoriteRecipes.map((recipe) => (
-                  <RecipeCard
-                    key={recipe.id}
-                    id={recipe.id}
-                    name={recipe.name}
-                    calories={recipe.nutritionFacts?.calories}
-                    prepTime={recipe.prepTime?.toString() || "N/A"}
-                    imageUrl={recipe.imageUrls?.[0] || ""}
-                  />
-                ))
-              ) : (
-                <p>No favorite recipes found.</p>
-              )}
+              {renderContent()}
             </div>
 
             {totalPages > 1 && (
