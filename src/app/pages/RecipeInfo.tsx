@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Share, Minus, Plus, Check } from 'lucide-react';
+import { Share, Minus, Plus, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import Container from "../../components/Container";
@@ -9,6 +9,28 @@ import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 interface RecipeInfoProps {
   recipe: Recipe;
 }
+
+// Define unit conversion thresholds and relationships
+const UNIT_CONVERSIONS = {
+  ml: { threshold: 1000, convertTo: "l", ratio: 1000 },
+  g: { threshold: 1000, convertTo: "kg", ratio: 1000 },
+  l: { threshold: 0.001, convertTo: "ml", ratio: 1000 },
+  kg: { threshold: 0.001, convertTo: "g", ratio: 1000 },
+};
+
+// Define metric to imperial conversion ratios
+const METRIC_TO_IMPERIAL = {
+  g: { unit: "oz", ratio: 0.03527396 }, // 1g = 0.03527396 oz
+  kg: { unit: "lb", ratio: 2.20462 }, // 1kg = 2.20462 lbs
+  ml: { unit: "fl oz", ratio: 0.033814 }, // 1ml = 0.033814 fl oz
+  l: { unit: "fl oz", ratio: 33.814 }, // 1l = 33.814 fl oz
+};
+
+// const IMPERIAL_TO_METRIC = {
+//   oz: { unit: "g", ratio: 28.3495 }, // 1oz = 28.3495g
+//   lb: { unit: "kg", ratio: 0.453592 }, // 1lb = 0.453592kg
+//   "fl oz": { unit: "ml", ratio: 29.5735 }, // 1 fl oz = 29.5735ml
+// };
 
 const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
   const [servings, setServings] = useState(1);
@@ -26,6 +48,76 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
   };
 
   const isCached = isValidCache(`recipe_${recipe.id}`);
+
+  // Function to convert units based on measurement system
+  const convertUnit = (
+    measurement: number,
+    unit: string
+  ): { value: number; unit: string } => {
+    const normalizedUnit = unit.toLowerCase();
+
+    // If we're using metric units
+    if (isMetric) {
+      const conversion =
+        UNIT_CONVERSIONS[normalizedUnit as keyof typeof UNIT_CONVERSIONS];
+
+      if (!conversion) {
+        return { value: measurement, unit };
+      }
+
+      // Convert to larger metric unit if threshold met
+      if (measurement >= conversion.threshold) {
+        return {
+          value: measurement / conversion.ratio,
+          unit: conversion.convertTo,
+        };
+      }
+    }
+    // If we're using imperial units
+    else {
+      const metricToImperial =
+        METRIC_TO_IMPERIAL[normalizedUnit as keyof typeof METRIC_TO_IMPERIAL];
+
+      if (metricToImperial) {
+        // Convert from metric to imperial
+        return {
+          value: measurement * metricToImperial.ratio,
+          unit: metricToImperial.unit,
+        };
+      }
+    }
+
+    return { value: measurement, unit };
+  };
+
+  // Calculate adjusted measurements based on servings and handle unit conversion
+  const calculateAdjustedMeasurement = (
+    measurement: number,
+    unit: string,
+    servings: number
+  ) => {
+    const totalAmount = measurement * servings;
+    const converted = convertUnit(totalAmount, unit);
+
+    return {
+      value: Number(converted.value.toFixed(2)),
+      unit: converted.unit,
+    };
+  };
+
+  // Format the measurement and unit for display
+  const formatMeasurementAndUnit = (
+    measurement: string | number,
+    unit: string
+  ) => {
+    const numericMeasurement = Number(measurement);
+
+    if (isNaN(numericMeasurement)) {
+      return { value: measurement, unit };
+    }
+
+    return calculateAdjustedMeasurement(numericMeasurement, unit, servings);
+  };
 
   return (
     <Container className="py-14 mx-auto text-sm rounded-sm min-h-screen">
@@ -91,7 +183,7 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
           </div>
         </div>
       </div>
-      <div className="flex gap-24 mt-4">
+      <div className="flex gap-24 mt-5">
         <div className="h-[480px] mt-5">
           <img
             src={recipe.imageUrls?.[0] || "/placeholder.svg"}
@@ -146,7 +238,6 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
       </div>
       <div className="mt-28">
         <div className="flex gap-40 border-t py-20 border-t-primary">
-          {/* Ingredients Section */}
           <div className="w-[400px]">
             <h2 className="text-xl font-medium text-textBlack mb-4">
               Ingredients
@@ -215,17 +306,23 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
 
               {/* Ingredients List */}
               <div className="space-y-4">
-                {recipe.ingredients?.map((ingredient, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between items-center border-b border-white/20 pb-3"
-                  >
-                    <span className="font-medium">
-                      {ingredient.measurement} {ingredient.unit}
-                    </span>
-                    <span className="text-white/70">{ingredient.item}</span>
-                  </div>
-                ))}
+                {recipe.ingredients?.map((ingredient, index) => {
+                  const { value, unit } = formatMeasurementAndUnit(
+                    ingredient.measurement,
+                    ingredient.unit
+                  );
+                  return (
+                    <div
+                      key={index}
+                      className="flex justify-between items-center border-b border-white/20 pb-3"
+                    >
+                      <span className="font-medium">
+                        {value} {unit}
+                      </span>
+                      <span className="text-white/70">{ingredient.item}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -241,9 +338,6 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
                   <div className="text-base text-gray-500 mb-2">
                     Step {instruction.step}/{recipe.instructions?.length}
                   </div>
-                  {/* <h3 className="text-lg text-textBlack font-medium mb-2">
-                    {`Step ${instruction.step}`}
-                  </h3> */}
                   <p className="text-gray-600 leading-relaxed">
                     {instruction.description}
                   </p>
