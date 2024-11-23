@@ -221,7 +221,7 @@ const Home = () => {
                 <div>
                   <h1 className="text-5xl">
                     1000 Plus performance <br /> driven recipes for
-                    <span className="text-[#4b5942]">athletes.</span>
+                    <span className="text-[#4b5942] ml-3">athletes.</span>
                   </h1>
                 </div>
                 <div className="mt-8">
