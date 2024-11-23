@@ -17,6 +17,7 @@ import {
 } from "../../lib/firebase/firestore";
 import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
+import { migrateRecipes } from "../../lib/migrate";
 
 interface InitialRecipe {
   id: string;
@@ -234,10 +235,10 @@ const Home = () => {
               </div>
               <div className="bg-primary/90 rounded-md w-[500px] h-full mx-auto space-y-2 p-2">
                 <div className="bg-[#637257] p-5 text-textWhite rounded-md space-y-3 text-sm">
-                  <div className="flex gap-2 items-center">
+                  {/* <div className="flex gap-2 items-center">
                     <ShoppingBasket className="h-5" />
                     <span>Generate grocery lists</span>
-                  </div>
+                  </div> */}
                   <div className="flex gap-2 items-center">
                     <Target className="h-5" />
                     <span>Get recipe suggestions according to your goals</span>
@@ -269,6 +270,7 @@ const Home = () => {
             </div>
 
             <div className="relative">
+              {/* <button onClick={() => migrateRecipes()}>Run Migration</button> */}
               <div
                 className="p-2 w-fit text-sm rounded-sm mt-4 bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer hover:bg-primary/30 transition-colors"
                 onMouseEnter={() => setIsDropdownOpen(true)}
