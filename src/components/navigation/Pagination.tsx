@@ -67,7 +67,7 @@ const Pagination: React.FC<PaginationProps> = ({
             typeof page === "number" ? onPageChange(page) : undefined
           }
           disabled={typeof page === "string"}
-          className={`w-10 h-10 rounded-md ${
+          className={`w-8 h-8 rounded-md ${
             currentPage === page
               ? "bg-primary text-white"
               : "hover:bg-primary/20"
