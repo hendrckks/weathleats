@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { useAuth } from "./AuthContext";
 import { db } from "../lib/firebase/clientApp";
 import {
@@ -7,12 +13,14 @@ import {
   getDoc,
   arrayUnion,
   arrayRemove,
+  writeBatch,
 } from "firebase/firestore";
+import { debounce } from "lodash";
 
 interface FavoritesContextType {
   favorites: string[];
-  addFavorite: (recipeId: string) => Promise<void>;
-  removeFavorite: (recipeId: string) => Promise<void>;
+  addFavorite: (recipeId: string) => void;
+  removeFavorite: (recipeId: string) => void;
   isFavorite: (recipeId: string) => boolean;
 }
 
@@ -24,6 +32,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [pendingUpdates, setPendingUpdates] = useState<Set<string>>(new Set());
   const { user } = useAuth();
 
   useEffect(() => {
@@ -44,28 +53,45 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
     fetchFavorites();
   }, [user]);
 
-  const addFavorite = async (recipeId: string) => {
-    if (user) {
-      const userRef = doc(db, "users", user.uid);
-      await setDoc(
-        userRef,
-        { favorites: arrayUnion(recipeId) },
-        { merge: true }
-      );
-      setFavorites([...favorites, recipeId]);
+  const updateFavorites = useCallback(
+    debounce(async () => {
+      if (user && pendingUpdates.size > 0) {
+        const batch = writeBatch(db);
+        const userRef = doc(db, "users", user.uid);
+
+        pendingUpdates.forEach((recipeId) => {
+          if (favorites.includes(recipeId)) {
+            batch.update(userRef, {
+              favorites: arrayUnion(recipeId),
+            });
+          } else {
+            batch.update(userRef, {
+              favorites: arrayRemove(recipeId),
+            });
+          }
+        });
+
+        await batch.commit();
+        setPendingUpdates(new Set());
+      }
+    }, 2000),
+    [user, favorites, pendingUpdates]
+  );
+
+  useEffect(() => {
+    updateFavorites();
+  }, [favorites, updateFavorites]);
+
+  const addFavorite = (recipeId: string) => {
+    if (!favorites.includes(recipeId)) {
+      setFavorites((prev) => [...prev, recipeId]);
+      setPendingUpdates((prev) => new Set(prev).add(recipeId));
     }
   };
 
-  const removeFavorite = async (recipeId: string) => {
-    if (user) {
-      const userRef = doc(db, "users", user.uid);
-      await setDoc(
-        userRef,
-        { favorites: arrayRemove(recipeId) },
-        { merge: true }
-      );
-      setFavorites(favorites.filter((id) => id !== recipeId));
-    }
+  const removeFavorite = (recipeId: string) => {
+    setFavorites((prev) => prev.filter((id) => id !== recipeId));
+    setPendingUpdates((prev) => new Set(prev).add(recipeId));
   };
 
   const isFavorite = (recipeId: string) => favorites.includes(recipeId);

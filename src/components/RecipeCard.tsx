@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavouritesContext";
 import { toast } from "../hooks/useToast";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useFirebaseCache } from "../lib/cache/cacheUtils";
 import { fetchRecipeById } from "../lib/firebase/firestore";
 
@@ -28,37 +28,48 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const [imageError, setImageError] = useState(false);
   const { fetchWithCache } = useFirebaseCache();
+  const [isLiked, setIsLiked] = useState(isFavorite(id));
 
   const navigate = useNavigate();
 
-  const handleLikeClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleLikeClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    if (!user) {
-      toast({
-        title: "",
-        variant: "warning",
-        description: "Sign In to add recipes to favourites",
-        duration: 5000,
-      });
-      navigate("/login");
-    } else {
-      if (isFavorite(id)) {
-        await removeFavorite(id);
+      if (!user) {
+        toast({
+          title: "",
+          variant: "warning",
+          description: "Sign In to add recipes to favourites",
+          duration: 5000,
+        });
+        navigate("/login");
       } else {
-        await addFavorite(id);
+        setIsLiked((prev) => !prev);
+        if (isLiked) {
+          removeFavorite(id);
+        } else {
+          addFavorite(id);
+          toast({
+            title: "",
+            variant: "success",
+            description: "Recipe added to favourites",
+            duration: 5000,
+          });
+        }
       }
-    }
-  };
+    },
+    [user, id, isLiked, addFavorite, removeFavorite, navigate]
+  );
 
-  const handleImageError = () => {
+  const handleImageError = useCallback(() => {
     setImageError(true);
-  };
+  }, []);
 
-  const prefetchRecipe = () => {
+  const prefetchRecipe = useCallback(() => {
     fetchWithCache(`recipe_${id}`, () => fetchRecipeById(id), 1000 * 60 * 30);
-  };
+  }, [fetchWithCache, id]);
 
   if (isLoading) {
     return (
@@ -169,7 +180,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className={`h-7 w-7 transition-colors duration-300 ease-in-out ${
-              isFavorite(id)
+              isLiked
                 ? "fill-current text-primary stroke-white stroke-2"
                 : "text-white stroke-white stroke-2"
             }`}
