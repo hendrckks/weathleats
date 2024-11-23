@@ -41,7 +41,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
         toast({
           title: "",
           variant: "warning",
-          description: "Sign In to add recipes to favourites",
+          description: "Sign In to get full access",
           duration: 5000,
         });
         navigate("/login");
