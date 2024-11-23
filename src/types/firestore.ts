@@ -39,6 +39,7 @@ export const instructionSchema = z.object({
 const baseRecipeSchema = z.object({
   name: z.string().min(1, "Recipe name is required"),
   description: z.string().optional(),
+  
 
   // Expanded recipe metadata
   prepTime: z.number().optional(),
@@ -73,6 +74,7 @@ export const recipeSchema = baseRecipeSchema.extend({
   id: z.string(),
   createdAt: z.instanceof(Timestamp),
   updatedAt: z.instanceof(Timestamp),
+  searchKeywords: z.array(z.string()),
 });
 
 // Type Exports

@@ -45,7 +45,7 @@ const recipeExists = async (id: string): Promise<boolean> => {
 };
 
 // Helper function to generate unique recipe ID
-const generateUniqueRecipeId = async (name: string): Promise<string> => {
+export const generateUniqueRecipeId = async (name: string): Promise<string> => {
   try {
     let baseId = formatRecipeId(name);
     let finalId = baseId;
@@ -67,7 +67,7 @@ const generateUniqueRecipeId = async (name: string): Promise<string> => {
 };
 
 // Helper function to upload recipe images with retry logic
-const uploadRecipeImages = async (
+export const uploadRecipeImages = async (
   recipeId: string,
   images: File[],
   maxRetries = 3
@@ -100,6 +100,14 @@ const uploadRecipeImages = async (
   }
 
   return imageUrls;
+};
+
+const normalizeText = (text: string): string => {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s]/g, "") // Remove special characters
+    .replace(/\s+/g, " "); // Normalize spaces
 };
 
 // Helper function to delete recipe images with retry logic
@@ -208,35 +216,111 @@ export const filterRecipesByTypeAndCategory = async (
 
 export const searchRecipes = async (searchTerm: string): Promise<Recipe[]> => {
   try {
+    const normalizedSearchTerm = normalizeText(searchTerm);
+    const searchWords = normalizedSearchTerm.split(" ");
+
+    // Create a query to search for recipes where any of the searchKeywords match
     const recipesRef = collection(db, "recipes");
     const q = query(
       recipesRef,
-      where("name", ">=", searchTerm.toLowerCase()),
-      where("name", "<=", searchTerm.toLowerCase() + "\uf8ff"),
-      orderBy("name"),
+      where("searchKeywords", "array-contains-any", searchWords),
       limit(30)
     );
-    const querySnapshot = await getDocs(q);
 
-    const searchedRecipes: Recipe[] = [];
+    const querySnapshot = await getDocs(q);
+    const searchResults: Recipe[] = [];
+
     querySnapshot.forEach((doc) => {
       try {
         const recipeData = doc.data();
+        // Score the match based on how many search words appear in the recipe name
+        const recipeName = normalizeText(recipeData.name);
+        const matchScore = searchWords.filter((word) =>
+          recipeName.includes(word)
+        ).length;
+
         const validatedRecipe = recipeSchema.parse({
           id: doc.id,
           ...recipeData,
+          _matchScore: matchScore, // Add match score for sorting
         });
-        searchedRecipes.push(validatedRecipe);
+        searchResults.push(validatedRecipe);
       } catch (error) {
         console.error(`Error validating recipe ${doc.id}:`, error);
       }
     });
 
-    return searchedRecipes;
+    // Sort results by match score (best matches first)
+    return searchResults.sort(
+      (a: any, b: any) => (b._matchScore || 0) - (a._matchScore || 0)
+    );
   } catch (error) {
     console.error("Error searching recipes:", error);
     throw error;
   }
+};
+
+export const updateRecipeSearchKeywords = async (
+  recipeId: string
+): Promise<void> => {
+  try {
+    const docRef = doc(db, "recipes", recipeId);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const recipeData = docSnap.data();
+      if (recipeData.name) {
+        const searchKeywords = generateSearchKeywords(recipeData.name);
+        await updateDoc(docRef, { searchKeywords });
+      }
+    }
+  } catch (error) {
+    console.error(
+      `Error updating search keywords for recipe ${recipeId}:`,
+      error
+    );
+    throw error;
+  }
+};
+
+export const generateSearchKeywords = (name: string): string[] => {
+  const normalizedName = normalizeText(name);
+  const words = normalizedName.split(" ");
+  const keywords = new Set<string>();
+
+  // Add individual words
+  words.forEach((word) => {
+    if (word.length >= 2) {
+      // Only add words with 2 or more characters
+      keywords.add(word);
+    }
+  });
+
+  // Add pairs of consecutive words
+  for (let i = 0; i < words.length - 1; i++) {
+    keywords.add(`${words[i]} ${words[i + 1]}`);
+  }
+
+  // Add triplets of consecutive words
+  for (let i = 0; i < words.length - 2; i++) {
+    keywords.add(`${words[i]} ${words[i + 1]} ${words[i + 2]}`);
+  }
+
+  // Add complete name
+  keywords.add(normalizedName);
+
+  // Add partial matches (substrings of 3 or more characters)
+  words.forEach((word) => {
+    if (word.length >= 3) {
+      for (let i = 0; i < word.length - 2; i++) {
+        for (let j = i + 3; j <= word.length; j++) {
+          keywords.add(word.slice(i, j));
+        }
+      }
+    }
+  });
+
+  return Array.from(keywords);
 };
 
 export const getTotalRecipesCount = async (): Promise<number> => {
@@ -298,12 +382,53 @@ export const fetchRecipeById = async (id: string): Promise<Recipe | null> => {
 
     if (docSnap.exists()) {
       const recipeData = docSnap.data();
-      // Use Zod to validate and parse the data
-      const validatedRecipe = recipeSchema.parse({
-        id: docSnap.id,
-        ...recipeData,
-      });
-      return validatedRecipe;
+
+      // If searchKeywords is missing, generate them from the recipe name
+      if (!recipeData.searchKeywords && recipeData.name) {
+        recipeData.searchKeywords = generateSearchKeywords(recipeData.name);
+
+        // Update the document with the generated searchKeywords
+        try {
+          await updateDoc(docRef, {
+            searchKeywords: recipeData.searchKeywords,
+          });
+        } catch (updateError) {
+          console.warn("Failed to update searchKeywords:", updateError);
+          // Continue execution even if update fails
+        }
+      }
+
+      // Try to validate the complete recipe
+      try {
+        const validatedRecipe = recipeSchema.parse({
+          id: docSnap.id,
+          ...recipeData,
+        });
+        return validatedRecipe;
+      } catch (validationError) {
+        // If validation fails, try with partial schema
+        if (validationError instanceof z.ZodError) {
+          console.warn(`Validation error for recipe ${id}:`, validationError);
+
+          // Create a partial schema that makes searchKeywords optional
+          const partialRecipeSchema = recipeSchema.partial({
+            searchKeywords: true,
+          });
+
+          // Validate with partial schema
+          const partiallyValidatedRecipe = partialRecipeSchema.parse({
+            id: docSnap.id,
+            ...recipeData,
+          });
+
+          // Return the recipe with empty searchKeywords if all else fails
+          return {
+            ...partiallyValidatedRecipe,
+            searchKeywords: recipeData.searchKeywords || [],
+          } as Recipe;
+        }
+        throw validationError;
+      }
     } else {
       console.log("No such document!");
       return null;
@@ -365,10 +490,13 @@ export const addRecipe = async (
     const imageUrls =
       images.length > 0 ? await uploadRecipeImages(recipeId, images) : [];
 
+    const searchKeywords = generateSearchKeywords(recipeData.name);
+
     const newRecipe: Recipe = {
       ...validatedData,
       id: recipeId,
       imageUrls,
+      searchKeywords,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
@@ -405,8 +533,7 @@ export const updateRecipe = async (
     // If name is being updated, generate new ID
     let newId = currentId;
     if (recipeData.name) {
-      newId = await generateUniqueRecipeId(recipeData.name);
-      updateData.id = newId;
+      updateData.searchKeywords = generateSearchKeywords(recipeData.name);
     }
 
     // Handle image updates if provided
