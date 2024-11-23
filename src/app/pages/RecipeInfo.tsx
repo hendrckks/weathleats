@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Share, Minus, Plus, Check } from "lucide-react";
+import { Share, Minus, Plus, Check } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import Container from "../../components/Container";
 import { Recipe } from "../../types/firestore";
+import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 
 interface RecipeInfoProps {
   recipe: Recipe;
@@ -12,6 +13,7 @@ interface RecipeInfoProps {
 const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
   const [servings, setServings] = useState(1);
   const [isMetric, setIsMetric] = useState(true);
+  const { isValidCache } = useFirebaseCache();
 
   const toggleMetricUnits = () => {
     setIsMetric(!isMetric);
@@ -23,8 +25,15 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
     "Gluten Free": "GF",
   };
 
+  const isCached = isValidCache(`recipe_${recipe.id}`);
+
   return (
     <Container className="py-14 mx-auto text-sm rounded-sm min-h-screen">
+      {isCached && (
+        <div className="bg-transparent text-transparent hidden px-4 py-2 rounded-md mb-4">
+          This recipe information is cached for faster loading.
+        </div>
+      )}
       <div className="space-y-5 pt-16">
         <div className="p-2 bg-primary/20 w-fit text-xs text-textBlack">
           {recipe.category?.[0] || "Uncategorized"}

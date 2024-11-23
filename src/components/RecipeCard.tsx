@@ -4,6 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavouritesContext";
 import { toast } from "../hooks/useToast";
 import { useState } from "react";
+import { useFirebaseCache } from "../lib/cache/cacheUtils";
+import { fetchRecipeById } from "../lib/firebase/firestore";
 
 interface RecipeCardProps {
   name: string;
@@ -25,6 +27,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   const { user } = useAuth();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const [imageError, setImageError] = useState(false);
+  const { fetchWithCache } = useFirebaseCache();
 
   const navigate = useNavigate();
 
@@ -53,6 +56,10 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
     setImageError(true);
   };
 
+  const prefetchRecipe = () => {
+    fetchWithCache(`recipe_${id}`, () => fetchRecipeById(id), 1000 * 60 * 30);
+  };
+
   if (isLoading) {
     return (
       <div className="w-full flex flex-col rounded-md relative">
@@ -70,7 +77,11 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   }
 
   return (
-    <Link to={`/recipes/${id}`} className="block w-full">
+    <Link
+      to={`/recipes/${id}`}
+      className="block w-full"
+      onMouseEnter={prefetchRecipe}
+    >
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
