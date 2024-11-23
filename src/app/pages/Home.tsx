@@ -5,6 +5,7 @@ import {
   NotebookPen,
   ShoppingBasket,
   Target,
+  X,
 } from "lucide-react";
 import Sidebar from "../../components/navigation/Sidebar";
 import RecipeCard from "../../components/RecipeCard";
@@ -12,6 +13,7 @@ import { Link } from "react-router-dom";
 import {
   fetchPaginatedRecipes,
   getTotalRecipesCount,
+  searchRecipes,
 } from "../../lib/firebase/firestore";
 import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
@@ -35,6 +37,7 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { fetchWithCache } = useFirebaseCache();
   const RECIPES_PER_PAGE = 30;
+  const [sortOption, setSortOption] = useState<string | null>(null);
 
   const [filters, setFilters] = useState({
     types: [] as string[],
@@ -129,9 +132,57 @@ const Home = () => {
     });
   };
 
+  const handleSearch = async (searchTerm: string) => {
+    setIsLoading(true);
+    try {
+      const searchResults = await searchRecipes(searchTerm);
+      const mappedResults = mapRecipes(searchResults);
+      setFilteredRecipes(mappedResults);
+    } catch (error) {
+      console.error("Error searching recipes:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSort = (option: string) => {
+    setSortOption(option);
+    let sortedRecipes = [...filteredRecipes];
+    switch (option) {
+      case "calories-high-low":
+        sortedRecipes.sort((a, b) => (b.calories || 0) - (a.calories || 0));
+        break;
+      case "calories-low-high":
+        sortedRecipes.sort((a, b) => (a.calories || 0) - (b.calories || 0));
+        break;
+      case "prep-time-low-high":
+        sortedRecipes.sort(
+          (a, b) => parseInt(a.prepTime) - parseInt(b.prepTime)
+        );
+        break;
+      case "prep-time-high-low":
+        sortedRecipes.sort(
+          (a, b) => parseInt(b.prepTime) - parseInt(a.prepTime)
+        );
+        break;
+      default:
+        break;
+    }
+    setFilteredRecipes(sortedRecipes);
+  };
+
+  const clearSort = () => {
+    setSortOption(null);
+    setFilteredRecipes([...initialRecipes]);
+  };
+
   return (
     <div className="min-h-screen pt-20">
-      <Sidebar filters={filters} onFilterChange={handleFilterChange} />
+      <Sidebar
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onSearch={handleSearch}
+      />
       <div className="text-textBlack ml-[317px] mb-10">
         <div className="p-10">
           <div className="flex flex-col gap-5">
@@ -193,23 +244,55 @@ const Home = () => {
                 onMouseEnter={() => setIsDropdownOpen(true)}
                 onMouseLeave={() => setIsDropdownOpen(false)}
               >
-                Sort by
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform duration-200 ${
-                    isDropdownOpen ? "rotate-180" : ""
-                  }`}
-                />
+                {sortOption ? (
+                  <>
+                    <span>{sortOption}</span>
+                    <button onClick={clearSort} className="ml-2">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Sort by
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform duration-200 ${
+                        isDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </>
+                )}
                 {isDropdownOpen && (
                   <div className="absolute left-0 top-full mt-[2px] bg-background border border-primary/40 shadow-lg rounded-sm w-56 py-1 px-1 z-50">
-                    <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer p-2">
+                    <div
+                      className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer p-2 ${
+                        sortOption === "calories-high-low"
+                          ? "bg-primary/20"
+                          : ""
+                      }`}
+                      onClick={() => handleSort("calories-high-low")}
+                    >
                       <ChevronDown className="h-4 w-4" />
                       Calories: High - Low
                     </div>
-                    <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer">
+                    <div
+                      className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
+                        sortOption === "calories-low-high"
+                          ? "bg-primary/20"
+                          : ""
+                      }`}
+                      onClick={() => handleSort("calories-low-high")}
+                    >
                       <ChevronDown className="h-4 w-4 rotate-180" />
                       Calories: Low - High
                     </div>
-                    <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer">
+                    <div
+                      className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
+                        sortOption === "prep-time-low-high"
+                          ? "bg-primary/20"
+                          : ""
+                      }`}
+                      onClick={() => handleSort("prep-time-low-high")}
+                    >
                       <svg
                         className="w-4 h-4 mr-1"
                         viewBox="0 0 24 24"
@@ -233,7 +316,14 @@ const Home = () => {
                       </svg>
                       Prep Time: Low - High
                     </div>
-                    <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer">
+                    <div
+                      className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
+                        sortOption === "prep-time-high-low"
+                          ? "bg-primary/20"
+                          : ""
+                      }`}
+                      onClick={() => handleSort("prep-time-high-low")}
+                    >
                       <svg
                         className="w-4 h-4 mr-1"
                         viewBox="0 0 24 24"

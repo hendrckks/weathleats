@@ -8,7 +8,7 @@ import { fetchRecipesByIds } from "../../lib/firebase/firestore";
 import { Recipe } from "../../types/firestore";
 import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
-import { Loader2, Heart } from "lucide-react";
+import { Loader2, Heart, ChevronDown, X } from "lucide-react";
 
 const RECIPES_PER_PAGE = 8;
 
@@ -21,7 +21,7 @@ const Account: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const { fetchWithCache } = useFirebaseCache();
-
+  const [sortOption, setSortOption] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const [filters, setFilters] = useState({
@@ -157,7 +157,7 @@ const Account: React.FC = () => {
       return (
         <div className="col-span-2 flex flex-col items-center justify-center py-12 text-center">
           <Heart className="h-16 w-16 text-gray-300 mb-4" />
-          <h3 className="text-xl font-medium text-gray-800 mb-2">
+          <h3 className="text-xl font-medium text-textBlack mb-2">
             No Favorite Recipes Yet
           </h3>
           <p className="text-gray-600 mb-4">
@@ -187,6 +187,41 @@ const Account: React.FC = () => {
         imageUrl={recipe.imageUrls?.[0] || ""}
       />
     ));
+  };
+
+  const handleSort = (option: string) => {
+    setSortOption(option);
+    let sortedRecipes = [...filteredRecipes];
+    switch (option) {
+      case "calories-high-low":
+        sortedRecipes.sort(
+          (a, b) =>
+            (b.nutritionFacts?.calories || 0) -
+            (a.nutritionFacts?.calories || 0)
+        );
+        break;
+      case "calories-low-high":
+        sortedRecipes.sort(
+          (a, b) =>
+            (a.nutritionFacts?.calories || 0) -
+            (b.nutritionFacts?.calories || 0)
+        );
+        break;
+      case "prep-time-low-high":
+        sortedRecipes.sort((a, b) => (a.prepTime || 0) - (b.prepTime || 0));
+        break;
+      case "prep-time-high-low":
+        sortedRecipes.sort((a, b) => (b.prepTime || 0) - (a.prepTime || 0));
+        break;
+      default:
+        break;
+    }
+    setFilteredRecipes(sortedRecipes);
+  };
+
+  const clearSort = () => {
+    setSortOption(null);
+    setFilteredRecipes([...favoriteRecipes]);
   };
 
   return (
@@ -267,54 +302,55 @@ const Account: React.FC = () => {
                   onMouseEnter={() => setIsDropdownOpen(true)}
                   onMouseLeave={() => setIsDropdownOpen(false)}
                 >
-                  Sort by
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`h-4 w-4 transition-transform duration-200 ${
-                      isDropdownOpen ? "rotate-180" : ""
-                    }`}
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                  {sortOption ? (
+                    <>
+                      <span>{sortOption}</span>
+                      <button onClick={clearSort} className="ml-2">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      Sort by
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform duration-200 ${
+                          isDropdownOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </>
+                  )}
                   {isDropdownOpen && (
                     <div className="absolute left-0 top-full mt-[2px] bg-background border border-primary/40 shadow-lg rounded-sm w-56 py-1 px-1 z-50">
-                      <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer p-2">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
+                      <div
+                        className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer p-2 ${
+                          sortOption === "calories-high-low"
+                            ? "bg-primary/20"
+                            : ""
+                        }`}
+                        onClick={() => handleSort("calories-high-low")}
+                      >
+                        <ChevronDown className="h-4 w-4" />
                         Calories: High - Low
                       </div>
-                      <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 rotate-180"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
+                      <div
+                        className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
+                          sortOption === "calories-low-high"
+                            ? "bg-primary/20"
+                            : ""
+                        }`}
+                        onClick={() => handleSort("calories-low-high")}
+                      >
+                        <ChevronDown className="h-4 w-4 rotate-180" />
                         Calories: Low - High
                       </div>
-                      <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer">
+                      <div
+                        className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
+                          sortOption === "prep-time-low-high"
+                            ? "bg-primary/20"
+                            : ""
+                        }`}
+                        onClick={() => handleSort("prep-time-low-high")}
+                      >
                         <svg
                           className="w-4 h-4 mr-1"
                           viewBox="0 0 24 24"
@@ -338,7 +374,14 @@ const Account: React.FC = () => {
                         </svg>
                         Prep Time: Low - High
                       </div>
-                      <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer">
+                      <div
+                        className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
+                          sortOption === "prep-time-high-low"
+                            ? "bg-primary/20"
+                            : ""
+                        }`}
+                        onClick={() => handleSort("prep-time-high-low")}
+                      >
                         <svg
                           className="w-4 h-4 mr-1"
                           viewBox="0 0 24 24"

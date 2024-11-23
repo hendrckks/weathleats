@@ -1,4 +1,6 @@
 import { Search } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface SidebarProps {
   filters: {
@@ -6,22 +8,37 @@ interface SidebarProps {
     categories: string[];
   };
   onFilterChange: (filterType: "types" | "categories", value: string) => void;
+  onSearch: (searchTerm: string) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ filters, onFilterChange }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  filters,
+  onFilterChange,
+  onSearch,
+}) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch(searchTerm);
+    navigate("/"); 
+  };
   return (
     <div className="fixed left-0 top-0 flex h-[100vh] w-72 flex-col bg-background border-r border-r-primary/50 p-6 space-y-6">
       {/* Search Section */}
       <div className="space-y-2 mt-24">
         <h2 className="text-sm font-medium">Search</h2>
-        <div className="relative">
+        <form onSubmit={handleSearch} className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <input
             type="text"
             placeholder="Browse all recipes"
             className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none placeholder:text-sm focus:ring-2 focus:ring-primary"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
-        </div>
+        </form>
       </div>
 
       {/* Types Section */}
