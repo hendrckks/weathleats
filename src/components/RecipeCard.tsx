@@ -37,8 +37,8 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
 
           {/* Skeleton for time and calories indicators */}
           <div className="absolute top-4 left-2 flex items-center space-x-2 z-50">
-            <div className="w-20 h-6 bg-gray-400 rounded-xl" />
-            <div className="w-20 h-6 bg-gray-400 rounded-xl" />
+            <div className="w-20 h-6 bg-gray-300 rounded-xl" />
+            <div className="w-20 h-6 bg-gray-300 rounded-xl" />
           </div>
 
           {/* Skeleton for like button */}
