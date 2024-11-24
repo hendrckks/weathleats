@@ -195,6 +195,16 @@ const SignIn = () => {
                 Continue with Google
               </button>
             </form>
+            <div className="mt-8 md:hidden block">
+              <QuoteLeft className="text-textBlack mb-2 lg:mb-3" />
+              <blockquote className="italic text-textBlack text-sm lg:text-base">
+                The food you eat can be either the safest and most powerful form
+                of medicine or the slowest form of poison.
+              </blockquote>
+              <p className="mt-2 lg:mt-3 text-textBlack text-xs">
+                - Ann Wigmore, Holistic Health Practitioner
+              </p>
+            </div>
           </div>
         </div>
 
