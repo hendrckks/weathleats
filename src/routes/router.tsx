@@ -12,6 +12,7 @@ import Account from "../app/pages/Account";
 // import AddRecipe from "../app/pages/AddRecipe";
 import RecipePage from "../app/pages/RecipePage";
 import AddRecipe from "../app/pages/AddRecipe";
+import EditAccount from "../app/pages/EditAccount";
 // import ProtectedRoute from "./ProtectedRoute";
 
 // import ProfilePage from "../app/pages/ProfilePage";
@@ -55,6 +56,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <Account />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/account",
+        element: (
+          <ProtectedRoute>
+            <EditAccount />
           </ProtectedRoute>
         ),
       },

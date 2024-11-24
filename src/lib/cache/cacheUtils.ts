@@ -1,5 +1,7 @@
 // src/lib/cache/cacheUtils.ts
 
+import { useCallback, useMemo } from "react";
+
 interface CacheItem<T> {
   data: T;
   timestamp: number;
@@ -117,35 +119,42 @@ export class CacheManager {
 
 // Custom hook for using cache with Firebase data
 export const useFirebaseCache = () => {
-  const cacheManager = CacheManager.getInstance();
-
-  const fetchWithCache = async <T>(
-    key: string,
-    fetchFn: () => Promise<T>,
-    expirationTime?: number
-  ): Promise<T> => {
-    // Check cache first
-    const cachedData = cacheManager.getCache<T>(key);
-
-    if (cachedData) {
-      return cachedData;
-    }
-
-    // If no cache or expired, fetch new data
-    try {
-      const data = await fetchFn();
-      cacheManager.setCache(key, data, expirationTime);
-      return data;
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      throw error;
-    }
+    const cacheManager = CacheManager.getInstance();
+  
+    const fetchWithCache = useCallback(
+      async <T>(
+        key: string,
+        fetchFn: () => Promise<T>,
+        expirationTime?: number
+      ): Promise<T> => {
+        // Check cache first
+        const cachedData = cacheManager.getCache<T>(key);
+  
+        if (cachedData) {
+          return cachedData;
+        }
+  
+        // If no cache or expired, fetch new data
+        try {
+          const data = await fetchFn();
+          cacheManager.setCache(key, data, expirationTime);
+          return data;
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          throw error;
+        }
+      },
+      [cacheManager]
+    );
+  
+    return useMemo(
+      () => ({
+        fetchWithCache,
+        clearCache: cacheManager.clearAllCaches.bind(cacheManager),
+        removeCache: cacheManager.removeCache.bind(cacheManager),
+        isValidCache: cacheManager.isValidCache.bind(cacheManager),
+      }),
+      [fetchWithCache, cacheManager]
+    );
   };
 
-  return {
-    fetchWithCache,
-    clearCache: cacheManager.clearAllCaches.bind(cacheManager),
-    removeCache: cacheManager.removeCache.bind(cacheManager),
-    isValidCache: cacheManager.isValidCache.bind(cacheManager),
-  };
-};

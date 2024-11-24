@@ -3,7 +3,8 @@ import React, {
   useContext,
   useState,
   useEffect,
-  useCallback,
+//   useCallback,
+  useMemo,
 } from "react";
 import { useAuth } from "./AuthContext";
 import { db } from "../lib/firebase/clientApp";
@@ -52,34 +53,37 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
     fetchFavorites();
   }, [user]);
 
-  const updateFavorites = useCallback(
-    debounce(async () => {
-      if (user && pendingUpdates.size > 0) {
-        const batch = writeBatch(db);
-        const userRef = doc(db, "users", user.uid);
+  const updateFavorites = useMemo(
+    () =>
+      debounce(async () => {
+        if (user && pendingUpdates.size > 0) {
+          const batch = writeBatch(db);
+          const userRef = doc(db, "users", user.uid);
 
-        pendingUpdates.forEach((recipeId) => {
-          if (favorites.includes(recipeId)) {
-            batch.update(userRef, {
-              favorites: arrayUnion(recipeId),
-            });
-          } else {
-            batch.update(userRef, {
-              favorites: arrayRemove(recipeId),
-            });
-          }
-        });
+          pendingUpdates.forEach((recipeId) => {
+            if (favorites.includes(recipeId)) {
+              batch.update(userRef, {
+                favorites: arrayUnion(recipeId),
+              });
+            } else {
+              batch.update(userRef, {
+                favorites: arrayRemove(recipeId),
+              });
+            }
+          });
 
-        await batch.commit();
-        setPendingUpdates(new Set());
-      }
-    }, 2000),
-    [user, favorites, pendingUpdates]
+          await batch.commit();
+          setPendingUpdates(new Set());
+        }
+      }, 2000),
+    [user]
   );
 
   useEffect(() => {
-    updateFavorites();
-  }, [favorites, updateFavorites]);
+    if (pendingUpdates.size > 0) {
+      updateFavorites();
+    }
+  }, [favorites, pendingUpdates, updateFavorites]);
 
   const addFavorite = (recipeId: string) => {
     if (!favorites.includes(recipeId)) {
