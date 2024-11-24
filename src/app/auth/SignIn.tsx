@@ -79,7 +79,7 @@ const SignIn = () => {
   };
 
   return (
-    <div className="h-screen flex items-center overflow-hidden bg-background">
+    <div className="h-screen flex items-center overflow-hidden bg-background md:mt-0 mt-20">
       <div className="w-full h-full rounded-2xl bg-background flex flex-col lg:flex-row overflow-hidden">
         {/* Form Section */}
         <div className="w-full lg:w-1/2 flex items-center justify-center px-4 py-8 lg:py-0">

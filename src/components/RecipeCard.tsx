@@ -103,7 +103,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             duration: 0.2,
           },
         }}
-        className="w-full flex flex-col rounded-md cursor-pointer relative"
+        className="w-full flex flex-col rounded-md cursor-pointer relative md:mt-0 mt-4"
       >
         <div className="absolute top-4 left-2 flex items-center space-x-2 z-30">
           <div className="flex items-center backdrop-blur-lg bg-white/30 px-1 py-1 rounded-xl text-white">
