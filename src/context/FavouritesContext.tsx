@@ -3,7 +3,6 @@ import React, {
   useContext,
   useState,
   useEffect,
-//   useCallback,
   useMemo,
 } from "react";
 import { useAuth } from "./AuthContext";
@@ -17,6 +16,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import debounce from "lodash/debounce";
+
 interface FavoritesContextType {
   favorites: string[];
   addFavorite: (recipeId: string) => void;
@@ -76,14 +76,17 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
           setPendingUpdates(new Set());
         }
       }, 2000),
-    [user]
+    [user, favorites, pendingUpdates]
   );
 
   useEffect(() => {
     if (pendingUpdates.size > 0) {
       updateFavorites();
     }
-  }, [favorites, pendingUpdates, updateFavorites]);
+    return () => {
+      updateFavorites.cancel();
+    };
+  }, [pendingUpdates, updateFavorites]);
 
   const addFavorite = (recipeId: string) => {
     if (!favorites.includes(recipeId)) {

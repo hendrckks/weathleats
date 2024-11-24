@@ -211,7 +211,7 @@ const Account: React.FC = () => {
       <div className="p-8 md:p-16 max-w-7xl mx-auto">
         <div className="flex flex-col gap-20 mx-1 mt-20">
           <div className="flex justify-between items-start">
-            <h1 className="text-5xl font-medium text-gray-800">Your profile</h1>
+            <h1 className="text-5xl font-medium text-gray-800">Your Profile</h1>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-4">
                 {user?.photoURL ? (
@@ -236,7 +236,7 @@ const Account: React.FC = () => {
               </div>
               <Link
                 to="/account"
-                className="px-4 py-2 bg-gray-100 rounded-md text-sm hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 bg-gray-100 rounded-[4px] text-sm hover:bg-gray-200 transition-colors"
               >
                 Edit Account
               </Link>
