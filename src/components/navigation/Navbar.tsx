@@ -12,6 +12,12 @@ const Navbar: React.FC<NavbarProps> = ({ showFilters }) => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
+  // Helper function to check if current route is an auth route
+  const isAuthRoute =
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    pathname === "/reset-password";
+
   return (
     <header className="fixed left-0 right-0 top-0 z-50 h-16 border-b border-primary/50 bg-background shadow-sm">
       <nav className="mx-auto flex h-full items-center justify-between px-4 md:px-8">
@@ -50,54 +56,51 @@ const Navbar: React.FC<NavbarProps> = ({ showFilters }) => {
           </div>
         </div>
 
-        {/* Auth Buttons */}
-        {pathname !== "/login" && pathname !== "/signup" && (
-          <div className="flex items-center gap-4">
-            {user && pathname !== "/profile" && (
-              <Link
-                to="/profile"
-                className="py-2 px-3 bg-primary text-textWhite text-sm rounded-[4px]"
-              >
-                Profile
-              </Link>
-              
-            )}
-            {!user && (
-              <>
-                <Link
-                  to="/signup"
-                  className="hidden md:block p-2 text-sm text-textBlack"
-                >
-                  Sign up
-                </Link>
-                <Link
-                  to="/login"
-                  className="py-2 px-3 bg-[#637257] text-textWhite text-xs rounded-md"
-                >
-                  Login
-                </Link>
-              </>
-            )}
-            <button
-              onClick={() => setIsOpen(true)}
-              className="p-2 text-gray-600 block md:hidden hover:text-gray-900"
+        {/* Auth Buttons and Hamburger Menu */}
+        <div className="flex items-center gap-4">
+          {!isAuthRoute && user && pathname !== "/profile" && (
+            <Link
+              to="/profile"
+              className="py-2 px-3 bg-primary text-textWhite text-sm rounded-[4px]"
             >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+              Profile
+            </Link>
+          )}
+          {!isAuthRoute && !user && (
+            <>
+              <Link
+                to="/signup"
+                className="hidden md:block p-2 text-sm text-textBlack"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
-          </div>
-        )}
+                Sign up
+              </Link>
+              <Link
+                to="/login"
+                className="py-2 px-3 bg-[#637257] text-textWhite text-xs rounded-md"
+              >
+                Login
+              </Link>
+            </>
+          )}
+          <button
+            onClick={() => setIsOpen(true)}
+            className="p-2 text-gray-600 block md:hidden hover:text-gray-900"
+          >
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
+        </div>
       </nav>
 
       {/* Mobile Sidebar */}
