@@ -48,7 +48,7 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
     }
 
     return {
-      value: formattedMeasurement.toFixed(2),
+      value: formattedMeasurement.toFixed(1),
       unit: formattedUnit,
     };
   };
