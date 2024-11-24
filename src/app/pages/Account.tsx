@@ -10,6 +10,7 @@ import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
 import { Loader2, Heart, ChevronDown, X } from "lucide-react";
 import ErrorBoundary from "../../components/ErrorBoundary";
+import DietTag from "../../components/DieTag";
 
 const RECIPES_PER_PAGE = 8;
 
@@ -257,6 +258,7 @@ const Account: React.FC = () => {
                         onChange={() => handleFilterChange("types", type)}
                       />
                       <span>{type}</span>
+                      <DietTag type={type} />
                     </label>
                   ))}
                 </div>

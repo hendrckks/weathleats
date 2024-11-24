@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import Container from "../../components/Container";
 import { Recipe } from "../../types/firestore";
 import { useFirebaseCache } from "../../lib/cache/cacheUtils";
+import DietTag from "../../components/DieTag";
 
 interface RecipeInfoProps {
   recipe: Recipe;
@@ -41,11 +42,11 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
     setIsMetric(!isMetric);
   };
 
-  const dietTypeAbbreviations: Record<string, string> = {
-    Vegetarian: "V",
-    Vegan: "Ve",
-    "Gluten Free": "GF",
-  };
+  // const dietTypeAbbreviations: Record<string, string> = {
+  //   Vegetarian: "V",
+  //   Vegan: "Ve",
+  //   "Gluten Free": "GF",
+  // };
 
   const isCached = isValidCache(`recipe_${recipe.id}`);
 
@@ -148,12 +149,7 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
         <div>
           <div className="flex gap-4 items-center">
             {recipe.type?.map((type: string) => (
-              <span
-                key={type}
-                className="inline-flex items-center text-xs bg-[#6b6b71] text-white px-2 py-1 rounded"
-              >
-                {dietTypeAbbreviations[type] || type}
-              </span>
+              <DietTag key={type} type={type} />
             ))}
             <div className="flex items-center text-textBlack">
               <svg
