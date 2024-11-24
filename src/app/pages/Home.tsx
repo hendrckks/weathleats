@@ -250,7 +250,7 @@ const Home = () => {
                 </div>
               </div>
               <div className="bg-primary/90 rounded-md w-full md:w-[500px] mt-6 md:mt-0 mx-auto space-y-2 p-2">
-                <div className="bg-[#637257] p-4 text-textWhite rounded-md space-y-3 text-[13px] md:text-sm">
+                <div className="bg-[#637257] p-4 text-textWhite rounded-md space-y-3 text-xs md:text-sm">
                   <div className="flex gap-2 items-center">
                     <Target className="h-5" />
                     <span>Get recipe suggestions according to your goals</span>
@@ -267,13 +267,13 @@ const Home = () => {
                 <div className="flex">
                   <Link
                     to="/profile"
-                    className="md:p-4 p-3 bg-background w-1/2 text-center text-sm rounded-md cursor-pointer hover:bg-background/90 transition-colors"
+                    className="md:p-5 p-3 bg-background w-1/2 text-center md:text-sm text-xs rounded-md cursor-pointer hover:bg-background/90 transition-colors"
                   >
                     Get full access
                   </Link>
                   <Link
                     to="/s"
-                    className="w-1/2 text-center md:p-4 p-3 text-textWhite text-sm cursor-pointer"
+                    className="w-1/2 text-center md:p-4 p-3 text-textWhite md:text-sm text-xs cursor-pointer"
                   >
                     Subscribe
                   </Link>
