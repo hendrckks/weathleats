@@ -154,15 +154,17 @@ const EditAccount: React.FC = () => {
   const isGoogleUser = user?.providerData[0]?.providerId === "google.com";
 
   return (
-    <div className="max-w-4xl mx-auto py-32 px-4 ">
-      <h1 className="text-4xl font-normal text-gray-900 mb-2">Your Account</h1>
+    <div className="max-w-4xl mx-auto py-8 md:py-32 md:mt-0 mt-20 px-4 ">
+      <h1 className="text-3xl md:text-4xl font-normal text-gray-900 mb-2">
+        Your Account
+      </h1>
       <p className="text-gray-600 mb-8">
         Update your account information below.
       </p>
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-lg p-6 shadow-sm space-y-8"
+        className="bg-white rounded-lg p-4 md:p-6 shadow-sm space-y-8"
       >
         {/* Personal Information Section */}
         <div>
@@ -170,7 +172,7 @@ const EditAccount: React.FC = () => {
             Personal Information
           </h2>
 
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-6">
             <div className="relative">
               <img
                 src={user?.photoURL || "/api/placeholder/48/48"}
@@ -282,7 +284,7 @@ const EditAccount: React.FC = () => {
         )}
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-4 pt-4">
+        <div className="flex flex-col md:flex-row justify-end gap-4 pt-4">
           <button
             type="button"
             onClick={() => navigate("/profile")}

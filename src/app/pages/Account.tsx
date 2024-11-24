@@ -25,6 +25,7 @@ const Account: React.FC = () => {
   const { fetchWithCache } = useFirebaseCache();
   const [sortOption, setSortOption] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const [filters, setFilters] = useState({
     types: [] as string[],
@@ -199,6 +200,51 @@ const Account: React.FC = () => {
     setFilteredRecipes([...favoriteRecipes]);
   };
 
+  const renderMobileFilters = () => (
+    <div className="md:hidden">
+      <button
+        onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+        className="flex items-center gap-2 p-2 bg-primary/30 text-sm text-textBlack rounded-sm mb-4"
+      >
+        {/* <Filter size={18} /> */}
+        {isMobileFilterOpen ? "Hide Filters" : "Show Filters"}
+      </button>
+      {isMobileFilterOpen && (
+        <div className="bg-background p-4 rounded-md shadow-md mb-4">
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-medium mb-2">Types</h3>
+              {["Vegetarian", "Vegan", "Gluten Free"].map((type) => (
+                <label key={type} className="flex items-center text-sm gap-2 mb-2">
+                  <input
+                    type="checkbox"
+                    checked={filters.types.includes(type)}
+                    onChange={() => handleFilterChange("types", type)}
+                  />
+                  <span>{type}</span>
+                  <DietTag type={type} />
+                </label>
+              ))}
+            </div>
+            <div>
+              <h3 className="font-medium mb-2">Category</h3>
+              {["Breakfast", "Lunch", "Dinner", "Dessert"].map((category) => (
+                <label key={category} className="flex items-center text-sm gap-2 mb-2">
+                  <input
+                    type="checkbox"
+                    checked={filters.categories.includes(category)}
+                    onChange={() => handleFilterChange("categories", category)}
+                  />
+                  <span>{category}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -209,11 +255,13 @@ const Account: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <div className="p-8 md:p-16 max-w-7xl mx-auto">
-        <div className="flex flex-col gap-20 mx-1 mt-20">
-          <div className="flex justify-between items-start">
-            <h1 className="text-5xl font-medium text-gray-800">Your Profile</h1>
-            <div className="flex items-center gap-4">
+      <div className="p-4 md:p-8 lg:p-16 max-w-7xl mx-auto">
+        <div className="flex flex-col gap-8 md:gap-20 mx-1 mt-20">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <h1 className="text-3xl md:text-5xl font-medium text-gray-800 mb-4 md:mb-0">
+              Your Profile
+            </h1>
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
               <div className="flex items-center gap-4">
                 {user?.photoURL ? (
                   <img
@@ -244,8 +292,9 @@ const Account: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex justify-between">
-            <div className="space-y-6 mt-2">
+          <div className="flex flex-col md:flex-row justify-between">
+            {renderMobileFilters()}
+            <div className="hidden md:block space-y-6 mt-2">
               <div className="space-y-2">
                 <h3 className="text-gray-600">Types</h3>
                 <div className="space-y-3 text-sm">
@@ -286,26 +335,31 @@ const Account: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex flex-col flex-1 ml-10">
+            <div className="flex flex-col flex-1 md:ml-10">
               <div className="flex justify-between items-center mb-6">
-                <p className="text-gray-600 flex items-center">
+                <p className="text-gray-600 md:text-base text-xs flex items-center">
                   Showing
                   <span className="mx-2">
                     <Heart className="h-5 w-5 text-primary" />
-                  </span>{" "}
+                  </span>
                   {filteredRecipes.length} of {favoriteRecipes.length} saved
                   recipe(s)
                 </p>
                 <div className="relative">
                   <div
                     className="p-2 w-fit text-sm rounded-sm bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer hover:bg-primary/30 transition-colors"
-                    onMouseEnter={() => setIsDropdownOpen(true)}
-                    onMouseLeave={() => setIsDropdownOpen(false)}
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   >
                     {sortOption ? (
                       <>
                         <span>{sortOption}</span>
-                        <button onClick={clearSort} className="ml-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            clearSort();
+                          }}
+                          className="ml-2"
+                        >
                           <X className="h-4 w-4" />
                         </button>
                       </>
@@ -319,99 +373,99 @@ const Account: React.FC = () => {
                         />
                       </>
                     )}
-                    {isDropdownOpen && (
-                      <div className="absolute left-0 top-full mt-[2px] bg-background border border-primary/40 shadow-lg rounded-sm w-56 py-1 px-1 z-50">
-                        <div
-                          className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer p-2 ${
-                            sortOption === "calories-high-low"
-                              ? "bg-primary/20"
-                              : ""
-                          }`}
-                          onClick={() => handleSort("calories-high-low")}
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                          Calories: High - Low
-                        </div>
-                        <div
-                          className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
-                            sortOption === "calories-low-high"
-                              ? "bg-primary/20"
-                              : ""
-                          }`}
-                          onClick={() => handleSort("calories-low-high")}
-                        >
-                          <ChevronDown className="h-4 w-4 rotate-180" />
-                          Calories: Low - High
-                        </div>
-                        <div
-                          className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
-                            sortOption === "prep-time-low-high"
-                              ? "bg-primary/20"
-                              : ""
-                          }`}
-                          onClick={() => handleSort("prep-time-low-high")}
-                        >
-                          <svg
-                            className="w-4 h-4 mr-1"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M12 6v6l4 2"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <circle
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            />
-                          </svg>
-                          Prep Time: Low - High
-                        </div>
-                        <div
-                          className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
-                            sortOption === "prep-time-high-low"
-                              ? "bg-primary/20"
-                              : ""
-                          }`}
-                          onClick={() => handleSort("prep-time-high-low")}
-                        >
-                          <svg
-                            className="w-4 h-4 mr-1"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M12 6v6l4 2"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <circle
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            />
-                          </svg>
-                          Prep Time: High - Low
-                        </div>
-                      </div>
-                    )}
                   </div>
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 top-full mt-[2px] bg-background border text-sm border-primary/40 shadow-lg rounded-sm w-56 py-1 px-1 z-50">
+                      <div
+                        className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer p-2 ${
+                          sortOption === "calories-high-low"
+                            ? "bg-primary/20"
+                            : ""
+                        }`}
+                        onClick={() => handleSort("calories-high-low")}
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                        Calories: High - Low
+                      </div>
+                      <div
+                        className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
+                          sortOption === "calories-low-high"
+                            ? "bg-primary/20"
+                            : ""
+                        }`}
+                        onClick={() => handleSort("calories-low-high")}
+                      >
+                        <ChevronDown className="h-4 w-4 rotate-180" />
+                        Calories: Low - High
+                      </div>
+                      <div
+                        className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
+                          sortOption === "prep-time-low-high"
+                            ? "bg-primary/20"
+                            : ""
+                        }`}
+                        onClick={() => handleSort("prep-time-low-high")}
+                      >
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 6v6l4 2"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          />
+                        </svg>
+                        Prep Time: Low - High
+                      </div>
+                      <div
+                        className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
+                          sortOption === "prep-time-high-low"
+                            ? "bg-primary/20"
+                            : ""
+                        }`}
+                        onClick={() => handleSort("prep-time-high-low")}
+                      >
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 6v6l4 2"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          />
+                        </svg>
+                        Prep Time: High - Low
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
                 {renderContent()}
               </div>
 

@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Share, Minus, Plus, Check } from "lucide-react";
+import { Minus, Plus, Check, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
-import Container from "../../components/Container";
+import { Link, useNavigate } from "react-router-dom";
 import { Recipe } from "../../types/firestore";
 import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import DietTag from "../../components/DieTag";
@@ -11,143 +10,84 @@ interface RecipeInfoProps {
   recipe: Recipe;
 }
 
-// Define unit conversion thresholds and relationships
-const UNIT_CONVERSIONS = {
-  ml: { threshold: 1000, convertTo: "l", ratio: 1000 },
-  g: { threshold: 1000, convertTo: "kg", ratio: 1000 },
-  l: { threshold: 0.001, convertTo: "ml", ratio: 1000 },
-  kg: { threshold: 0.001, convertTo: "g", ratio: 1000 },
-};
-
-// Define metric to imperial conversion ratios
-const METRIC_TO_IMPERIAL = {
-  g: { unit: "oz", ratio: 0.03527396 }, // 1g = 0.03527396 oz
-  kg: { unit: "lb", ratio: 2.20462 }, // 1kg = 2.20462 lbs
-  ml: { unit: "fl oz", ratio: 0.033814 }, // 1ml = 0.033814 fl oz
-  l: { unit: "fl oz", ratio: 33.814 }, // 1l = 33.814 fl oz
-};
-
-// const IMPERIAL_TO_METRIC = {
-//   oz: { unit: "g", ratio: 28.3495 }, // 1oz = 28.3495g
-//   lb: { unit: "kg", ratio: 0.453592 }, // 1lb = 0.453592kg
-//   "fl oz": { unit: "ml", ratio: 29.5735 }, // 1 fl oz = 29.5735ml
-// };
-
 const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
   const [servings, setServings] = useState(1);
   const [isMetric, setIsMetric] = useState(true);
   const { isValidCache } = useFirebaseCache();
+  const navigate = useNavigate();
+
+  const isCached = isValidCache(recipe.id);
 
   const toggleMetricUnits = () => {
     setIsMetric(!isMetric);
   };
 
-  // const dietTypeAbbreviations: Record<string, string> = {
-  //   Vegetarian: "V",
-  //   Vegan: "Ve",
-  //   "Gluten Free": "GF",
-  // };
+  const formatMeasurementAndUnit = (measurement: number, unit: string) => {
+    let formattedMeasurement = measurement * servings;
+    let formattedUnit = unit;
 
-  const isCached = isValidCache(`recipe_${recipe.id}`);
-
-  // Function to convert units based on measurement system
-  const convertUnit = (
-    measurement: number,
-    unit: string
-  ): { value: number; unit: string } => {
-    const normalizedUnit = unit.toLowerCase();
-
-    // If we're using metric units
-    if (isMetric) {
-      const conversion =
-        UNIT_CONVERSIONS[normalizedUnit as keyof typeof UNIT_CONVERSIONS];
-
-      if (!conversion) {
-        return { value: measurement, unit };
-      }
-
-      // Convert to larger metric unit if threshold met
-      if (measurement >= conversion.threshold) {
-        return {
-          value: measurement / conversion.ratio,
-          unit: conversion.convertTo,
-        };
+    if (!isMetric) {
+      switch (unit.toLowerCase()) {
+        case "g":
+          formattedMeasurement = formattedMeasurement / 28.34952;
+          formattedUnit = "oz";
+          break;
+        case "ml":
+          formattedMeasurement = formattedMeasurement / 29.5735;
+          formattedUnit = "fl oz";
+          break;
+        case "kg":
+          formattedMeasurement = formattedMeasurement * 2.20462;
+          formattedUnit = "lb";
+          break;
+        case "l":
+          formattedMeasurement = formattedMeasurement * 4.22675;
+          formattedUnit = "cups";
+          break;
       }
     }
-    // If we're using imperial units
-    else {
-      const metricToImperial =
-        METRIC_TO_IMPERIAL[normalizedUnit as keyof typeof METRIC_TO_IMPERIAL];
-
-      if (metricToImperial) {
-        // Convert from metric to imperial
-        return {
-          value: measurement * metricToImperial.ratio,
-          unit: metricToImperial.unit,
-        };
-      }
-    }
-
-    return { value: measurement, unit };
-  };
-
-  // Calculate adjusted measurements based on servings and handle unit conversion
-  const calculateAdjustedMeasurement = (
-    measurement: number,
-    unit: string,
-    servings: number
-  ) => {
-    const totalAmount = measurement * servings;
-    const converted = convertUnit(totalAmount, unit);
 
     return {
-      value: Number(converted.value.toFixed(2)),
-      unit: converted.unit,
+      value: formattedMeasurement.toFixed(2),
+      unit: formattedUnit,
     };
   };
 
-  // Format the measurement and unit for display
-  const formatMeasurementAndUnit = (
-    measurement: string | number,
-    unit: string
-  ) => {
-    const numericMeasurement = Number(measurement);
-
-    if (isNaN(numericMeasurement)) {
-      return { value: measurement, unit };
-    }
-
-    return calculateAdjustedMeasurement(numericMeasurement, unit, servings);
-  };
-
   return (
-    <Container className="py-14 mx-auto text-sm rounded-sm min-h-screen">
+    <div className="py-14 mx-auto text-sm rounded-sm md:max-w-7xl max-w-full min-h-screen px-4 md:px-8 lg:px-16">
       {isCached && (
         <div className="bg-transparent text-transparent hidden px-4 py-2 rounded-md mb-4">
           This recipe information is cached for faster loading.
         </div>
       )}
-      <div className="space-y-5 pt-16">
+      <div className="space-y-5 pt-4 md:pt-16">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center text-base text-textBlack ound hover:underline"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          back
+        </button>
         <div className="p-2 bg-primary/20 w-fit text-xs text-textBlack">
           {recipe.category?.[0] || "Uncategorized"}
         </div>
-        <div className="justify-between flex">
-          <h1 className="text-5xl">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+          <h1 className="text-3xl md:text-5xl mb-4 md:mb-0">
             {recipe.name.charAt(0).toUpperCase() + recipe.name.slice(1)}
           </h1>
 
-          <div className="group flex">
-            <Share className="text-textBlack text-2xl cursor-pointer" />
-            <p className="relative group-hover:text-textBlack/60 font-semibold left-2 bottom-4 transition-colors ease-in-out text-transparent">
+          {/* <div className="group flex items-center">
+            <Share className="text-textBlack text-xl md:text-2xl cursor-pointer" />
+            <p className="relative group-hover:text-textBlack/60 font-semibold ml-2 transition-colors ease-in-out">
               Share
             </p>
-          </div>
+          </div> */}
         </div>
-        <div className="w-1/3">
+        <div className="w-full md:w-1/3">
           <p className="text-base text-textBlack">{recipe.description}</p>
         </div>
         <div>
-          <div className="flex gap-4 items-center">
+          <div className="flex flex-wrap gap-4 items-center">
             {recipe.type?.map((type: string) => (
               <DietTag key={type} type={type} />
             ))}
@@ -179,15 +119,15 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
           </div>
         </div>
       </div>
-      <div className="flex gap-24 mt-5">
-        <div className="h-[480px] mt-5">
+      <div className="flex flex-col md:flex-row gap-8 md:gap-24 mt-5">
+        <div className="h-[300px] md:h-[480px] mt-5 w-full md:w-[750px]">
           <img
             src={recipe.imageUrls?.[0] || "/placeholder.svg"}
-            className="h-full object-cover w-[750px] rounded-md"
+            className="h-full w-full object-cover rounded-md"
             alt={recipe.name}
           />
         </div>
-        <div className="w-1/2">
+        <div className="w-full md:w-1/2">
           <div className="space-y-8">
             {/* Meal Benefits Section */}
             <div>
@@ -232,16 +172,16 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
           </div>
         </div>
       </div>
-      <div className="mt-28">
-        <div className="flex gap-40 border-t py-20 border-t-primary">
-          <div className="w-[400px]">
+      <div className="mt-12 md:mt-28">
+        <div className="flex flex-col md:flex-row gap-8 md:gap-40 border-t py-8 md:py-20 border-t-primary">
+          <div className="w-full md:w-[400px]">
             <h2 className="text-xl font-medium text-textBlack mb-4">
               Ingredients
             </h2>
             <div className="bg-primary rounded-lg p-6 text-white/90">
               {/* Serving Controls */}
-              <div className="flex mx-8 justify-between items-center mb-6">
-                <div className="flex flex-col items-center gap-4">
+              <div className="flex flex-col md:flex-row md:mx-8 justify-between items-center mb-6">
+                <div className="flex flex-col items-center gap-4 mb-4 md:mb-0">
                   <span>Serving</span>
                   <div className="flex items-center gap-2">
                     <button
@@ -343,7 +283,7 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
           </div>
         </div>
       </div>
-      <div className="flex flex-col space-y-8 items-center text-lg">
+      <div className="flex flex-col space-y-8 items-center text-lg mt-8">
         <div className="">
           <Link to="/login" className="text-primary underline">
             Login
@@ -351,11 +291,11 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
           <span className="ml-2">to join the conversation</span>
         </div>
         <div className="text-textBlack">0 Comments</div>
-        <div className="py-12 px-20 bg-primary/15 text-textBlack">
+        <div className="py-12 px-4 md:px-20 bg-primary/15 text-textBlack md:w-1/3 w-2/3 md:text-base text-sm rounded-md text-center">
           Be the first to comment
         </div>
       </div>
-    </Container>
+    </div>
   );
 };
 

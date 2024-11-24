@@ -208,39 +208,40 @@ const Home = () => {
 
   return (
     <div className="min-h-screen pt-20">
-      <Sidebar
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onSearch={handleSearch}
-        onSearchInputChange={handleSearchInputChange}
-      />
-      <div className="text-textBlack ml-[317px] mb-10">
-        <div className="p-10">
+      <div className="hidden md:block">
+        <Sidebar
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onSearch={handleSearch}
+          onSearchInputChange={handleSearchInputChange}
+        />
+      </div>
+      <div className="text-textBlack md:ml-[317px] mb-10">
+        <div className="p-4 md:p-10">
           <div className="flex flex-col gap-5">
-            <div className="flex justify-between">
+            <div className="flex flex-col md:flex-row justify-between">
               <div>
                 <div>
-                  <h1 className="text-5xl">
-                    1000 Plus performance <br /> driven recipes for
+                  <h1 className="text-[33px] leading-9 md:text-5xl">
+                    1000 Plus performance <br className="hidden md:block" />
+                    driven recipes for
                     <span className="text-[#4b5942] ml-3">athletes.</span>
                   </h1>
                 </div>
-                <div className="mt-8">
-                  <p className="font-medium">
-                    Elevate your performance with precision nutrition. <br />
-                    Our recipes are tailored for athletes who push <br /> their
-                    limits and demand the best fuel for optimal results.
+                <div className="mt-6 md:mt-8">
+                  <p className="font-medium text-base">
+                    Elevate your performance with precision nutrition.{" "}
+                    <br className="hidden md:block" />
+                    Our recipes are tailored for athletes who push{" "}
+                    <br className="hidden md:block" /> their limits and demand
+                    the best fuel for optimal results.
                   </p>
                 </div>
               </div>
-              <div className="bg-primary/90 rounded-md w-[500px] h-full mx-auto space-y-2 p-2">
-                <div className="bg-[#637257] p-5 text-textWhite rounded-md space-y-3 text-sm">
-                  {/* <div className="flex gap-2 items-center">
-                    <ShoppingBasket className="h-5" />
-                    <span>Generate grocery lists</span>
-                  </div> */}
+              <div className="bg-primary/90 rounded-md w-full md:w-[500px] mt-6 md:mt-0 mx-auto space-y-2 p-2">
+                <div className="bg-[#637257] p-4 text-textWhite rounded-md space-y-3 text-[13px] md:text-sm">
                   <div className="flex gap-2 items-center">
-                    <Target className="h-5" />
+                    <Target className="h-5 mb-4" />
                     <span>Get recipe suggestions according to your goals</span>
                   </div>
                   <div className="flex gap-2 items-center">
@@ -260,7 +261,7 @@ const Home = () => {
                     Get full access
                   </Link>
                   <Link
-                    to="/"
+                    to="/s"
                     className="w-1/2 text-center p-4 text-textWhite text-sm cursor-pointer"
                   >
                     Subscribe
@@ -270,11 +271,9 @@ const Home = () => {
             </div>
 
             <div className="relative">
-              {/* <button onClick={() => migrateRecipes()}>Run Migration</button> */}
               <div
                 className="p-2 w-fit text-sm rounded-sm mt-4 bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer hover:bg-primary/30 transition-colors"
-                onMouseEnter={() => setIsDropdownOpen(true)}
-                onMouseLeave={() => setIsDropdownOpen(false)}
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
                 {sortOption ? (
                   <>
@@ -293,95 +292,88 @@ const Home = () => {
                     />
                   </>
                 )}
-                {isDropdownOpen && (
-                  <div className="absolute left-0 top-full mt-[2px] bg-background border border-primary/40 shadow-lg rounded-sm w-56 py-1 px-1 z-50">
-                    <div
-                      className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer p-2 ${
-                        sortOption === "calories-high-low"
-                          ? "bg-primary/20"
-                          : ""
-                      }`}
-                      onClick={() => handleSort("calories-high-low")}
-                    >
-                      <ChevronDown className="h-4 w-4" />
-                      Calories: High - Low
-                    </div>
-                    <div
-                      className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
-                        sortOption === "calories-low-high"
-                          ? "bg-primary/20"
-                          : ""
-                      }`}
-                      onClick={() => handleSort("calories-low-high")}
-                    >
-                      <ChevronDown className="h-4 w-4 rotate-180" />
-                      Calories: Low - High
-                    </div>
-                    <div
-                      className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
-                        sortOption === "prep-time-low-high"
-                          ? "bg-primary/20"
-                          : ""
-                      }`}
-                      onClick={() => handleSort("prep-time-low-high")}
-                    >
-                      <svg
-                        className="w-4 h-4 mr-1"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M12 6v6l4 2"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <circle
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        />
-                      </svg>
-                      Prep Time: Low - High
-                    </div>
-                    <div
-                      className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
-                        sortOption === "prep-time-high-low"
-                          ? "bg-primary/20"
-                          : ""
-                      }`}
-                      onClick={() => handleSort("prep-time-high-low")}
-                    >
-                      <svg
-                        className="w-4 h-4 mr-1"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M12 6v6l4 2"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <circle
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        />
-                      </svg>
-                      Prep Time: High - Low
-                    </div>
-                  </div>
-                )}
               </div>
+              {isDropdownOpen && (
+                <div className="absolute left-0 top-full text-sm mt-[2px] bg-background border border-primary/40 shadow-lg rounded-sm w-56 py-1 px-1 z-50">
+                  {/* ... (keep the existing dropdown content) */}
+                  <div
+                    className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer p-2 ${
+                      sortOption === "calories-high-low" ? "bg-primary/20" : ""
+                    }`}
+                    onClick={() => handleSort("calories-high-low")}
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                    Calories: High - Low
+                  </div>
+                  <div
+                    className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
+                      sortOption === "calories-low-high" ? "bg-primary/20" : ""
+                    }`}
+                    onClick={() => handleSort("calories-low-high")}
+                  >
+                    <ChevronDown className="h-4 w-4 rotate-180" />
+                    Calories: Low - High
+                  </div>
+                  <div
+                    className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
+                      sortOption === "prep-time-low-high" ? "bg-primary/20" : ""
+                    }`}
+                    onClick={() => handleSort("prep-time-low-high")}
+                  >
+                    <svg
+                      className="w-4 h-4 mr-1"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 6v6l4 2"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                    Prep Time: Low - High
+                  </div>
+                  <div
+                    className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer ${
+                      sortOption === "prep-time-high-low" ? "bg-primary/20" : ""
+                    }`}
+                    onClick={() => handleSort("prep-time-high-low")}
+                  >
+                    <svg
+                      className="w-4 h-4 mr-1"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 6v6l4 2"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                    Prep Time: High - Low
+                  </div>
+                </div>
+              )}
             </div>
 
             <h2 className="text-xl mt-2">
@@ -392,7 +384,7 @@ const Home = () => {
                 : "Suggested Recipes"}
             </h2>
 
-            <div className="grid grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-10">
               {isLoading ? (
                 Array(6)
                   .fill(0)
