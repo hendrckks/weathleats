@@ -241,7 +241,7 @@ const Home = () => {
               <div className="bg-primary/90 rounded-md w-full md:w-[500px] mt-6 md:mt-0 mx-auto space-y-2 p-2">
                 <div className="bg-[#637257] p-4 text-textWhite rounded-md space-y-3 text-[13px] md:text-sm">
                   <div className="flex gap-2 items-center">
-                    <Target className="h-5 mb-4" />
+                    <Target className="h-5" />
                     <span>Get recipe suggestions according to your goals</span>
                   </div>
                   <div className="flex gap-2 items-center">
