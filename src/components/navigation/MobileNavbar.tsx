@@ -70,7 +70,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
       {showFilters && (
         <div className="flex-1 overflow-y-auto p-4">
           {/* Search */}
-          <div className="space-y-2 mb-6">
+          {/* <div className="space-y-2 mb-6">
             <h2 className="text-sm text-textBlack font-medium">Search</h2>
             <div className="relative">
               <input
@@ -92,10 +92,10 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
                 />
               </svg>
             </div>
-          </div>
+          </div> */}
 
           {/* Types */}
-          <div className="space-y-3 mb-6">
+          {/* <div className="space-y-3 mb-6">
             <h2 className="text-sm text-textBlack font-medium">Types</h2>
             <div className="space-y-3">
               {["Vegetarian", "Vegan", "Gluten Free"].map((type) => (
@@ -123,10 +123,10 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
                 </label>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Categories */}
-          <div className="space-y-3">
+          {/* <div className="space-y-3">
             <h2 className="text-sm text-textBlack font-medium">Category</h2>
             <div className="space-y-3">
               {[
@@ -146,7 +146,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
                 </label>
               ))}
             </div>
-          </div>
+          </div> */}
         </div>
       )}
     </div>

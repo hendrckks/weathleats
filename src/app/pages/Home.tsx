@@ -17,6 +17,7 @@ import {
 } from "../../lib/firebase/firestore";
 import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
+import MobileFilters from "../../components/MobileFilters";
 // import { migrateRecipes } from "../../lib/migrate";
 
 interface InitialRecipe {
@@ -41,6 +42,7 @@ const Home = () => {
   const [sortOption, setSortOption] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<InitialRecipe[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const [filters, setFilters] = useState({
     types: [] as string[],
@@ -206,6 +208,15 @@ const Home = () => {
     setFilteredRecipes([...initialRecipes]);
   };
 
+  const renderMobileFilters = () => (
+    <MobileFilters
+      filters={filters}
+      onFilterChange={handleFilterChange}
+      isMobileFilterOpen={isMobileFilterOpen}
+      setIsMobileFilterOpen={setIsMobileFilterOpen}
+    />
+  );
+
   return (
     <div className="min-h-screen pt-20">
       <div className="hidden md:block">
@@ -222,14 +233,14 @@ const Home = () => {
             <div className="flex flex-col md:flex-row justify-between">
               <div>
                 <div>
-                  <h1 className="text-[33px] leading-9 md:text-5xl">
+                  <h1 className="text-4xl md:text-5xl">
                     1000 Plus performance <br className="hidden md:block" />
                     driven recipes for
                     <span className="text-[#4b5942] ml-3">athletes.</span>
                   </h1>
                 </div>
                 <div className="mt-6 md:mt-8">
-                  <p className="font-medium text-base">
+                  <p className="font-medium">
                     Elevate your performance with precision nutrition.{" "}
                     <br className="hidden md:block" />
                     Our recipes are tailored for athletes who push{" "}
@@ -256,13 +267,13 @@ const Home = () => {
                 <div className="flex">
                   <Link
                     to="/profile"
-                    className="p-4 bg-background w-1/2 text-center text-sm rounded-md cursor-pointer hover:bg-background/90 transition-colors"
+                    className="md:p-4 p-3 bg-background w-1/2 text-center text-sm rounded-md cursor-pointer hover:bg-background/90 transition-colors"
                   >
                     Get full access
                   </Link>
                   <Link
                     to="/s"
-                    className="w-1/2 text-center p-4 text-textWhite text-sm cursor-pointer"
+                    className="w-1/2 text-center md:p-4 p-3 text-textWhite text-sm cursor-pointer"
                   >
                     Subscribe
                   </Link>
@@ -270,7 +281,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="relative">
+            <div className="relative flex gap-2 items-center">
               <div
                 className="p-2 w-fit text-sm rounded-sm mt-4 bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer hover:bg-primary/30 transition-colors"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -374,6 +385,7 @@ const Home = () => {
                   </div>
                 </div>
               )}
+              {renderMobileFilters()}
             </div>
 
             <h2 className="text-xl mt-2">
