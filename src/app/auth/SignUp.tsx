@@ -5,11 +5,9 @@ import { QuoteLeft } from "../../assets/icons/Quotes";
 import { signUp, signInWithGoogle } from "../../lib/firebase/auth";
 import { SignUpInput } from "../../types/auth";
 import { toast } from "../../hooks/useToast";
-// import { useAuth } from "../../context/AuthContext";
 
 const SignUp = () => {
   const navigate = useNavigate();
-  // const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -18,13 +16,6 @@ const SignUp = () => {
     email: "",
     password: "",
   });
-
-  // Redirect if user is already logged in
-  // React.useEffect(() => {
-  //   if (user) {
-  //     navigate("/dashboard");
-  //   }
-  // }, [user, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -52,7 +43,6 @@ const SignUp = () => {
 
       if (result?.success) {
         setSuccess(result.message);
-        // Wait for 2 seconds to show the success message before redirecting
         setTimeout(() => {
           navigate("/login", {
             state: {
@@ -66,7 +56,6 @@ const SignUp = () => {
     } catch (err: any) {
       let errorMessage = "Failed to create account";
 
-      // Enhanced error messages that match toast notifications
       if (err.message?.includes("already registered")) {
         errorMessage =
           "This email is already registered. Please try signing in.";
@@ -115,10 +104,11 @@ const SignUp = () => {
   };
 
   return (
-    <div className="h-screen flex items-center overflow-hidden">
-      <div className="w-full h-full rounded-2xl bg-background flex overflow-hidden">
-        <div className="w-1/2 flex items-center">
-          <div className="w-full max-w-md mx-auto p-6">
+    <div className="h-screen flex items-center overflow-hidden bg-background md:mt-0 mt-20">
+      <div className="w-full h-full rounded-2xl bg-background flex flex-col lg:flex-row overflow-hidden">
+        {/* Form Section */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center px-4 py-8 lg:py-0">
+          <div className="w-full max-w-md p-4 lg:p-6">
             <div className="mb-6 text-center">
               <h2 className="text-xl font-medium text-textBlack">
                 Create an account
@@ -132,7 +122,7 @@ const SignUp = () => {
             )}
 
             {success && (
-              <div className="mb-4 p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
+              <div className="mb-4 p-3 text-sm text-green-500 bg-green-50 border border-green-200 rounded-md">
                 {success}
               </div>
             )}
@@ -204,7 +194,7 @@ const SignUp = () => {
                 <span className="text-gray-500">Already have an account?</span>
                 <Link
                   to="/login"
-                  className="ml-1.5 text-gray-900 object-cover underline hover:text-gray-800"
+                  className="ml-1.5 text-gray-900 underline hover:text-gray-800"
                 >
                   Sign In
                 </Link>
@@ -248,19 +238,21 @@ const SignUp = () => {
             </form>
           </div>
         </div>
-        <div className="w-1/2 bg-black relative">
+
+        {/* Image Section */}
+        <div className="w-full lg:w-1/2 h-64 lg:h-auto relative order-first lg:order-last hidden md:block">
           <img
             src="/recipes/cover1.jfif"
             alt="Auth background"
             className="w-full h-full object-cover"
           />
-          <div className="absolute bottom-16 left-8 max-w-sm flex flex-col items-start">
-            <QuoteLeft className="text-textWhite mb-3" />
-            <blockquote className="italic text-textWhite text-base">
+          <div className="absolute bottom-4 lg:bottom-16 left-4 lg:left-8 max-w-sm flex flex-col items-start px-4 lg:px-0">
+            <QuoteLeft className="text-textWhite mb-2 lg:mb-3" />
+            <blockquote className="italic text-textWhite text-sm lg:text-base">
               The food you eat can be either the safest and most powerful form
               of medicine or the slowest form of poison.
             </blockquote>
-            <p className="mt-3 text-textWhite text-xs">
+            <p className="mt-2 lg:mt-3 text-textWhite text-xs">
               - Ann Wigmore, Holistic Health Practitioner
             </p>
           </div>

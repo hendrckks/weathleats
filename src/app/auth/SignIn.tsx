@@ -4,7 +4,6 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { QuoteLeft } from "../../assets/icons/Quotes";
 import { login, signInWithGoogle } from "../../lib/firebase/auth";
 import { toast } from "../../hooks/useToast";
-// import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -13,10 +12,9 @@ const SignIn = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const [message, setMessage] = useState<string | null>(null);
+  const [_message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get the state passed from the SignUp component
     const state = location.state;
     if (state?.email) {
       setEmail(state.email);
@@ -24,8 +22,6 @@ const SignIn = () => {
     if (state?.message) {
       setMessage(state.message);
     }
-    console.log(message);
-    // Clear the location state after using it
     window.history.replaceState({}, document.title);
   }, [location]);
 
@@ -83,10 +79,11 @@ const SignIn = () => {
   };
 
   return (
-    <div className="h-screen flex items-center overflow-hidden">
-      <div className="w-full h-full rounded-2xl bg-background flex overflow-hidden">
-        <div className="w-1/2 flex items-center">
-          <div className="w-full max-w-md mx-auto px-6">
+    <div className="h-screen flex items-center overflow-hidden bg-background">
+      <div className="w-full h-full rounded-2xl bg-background flex flex-col lg:flex-row overflow-hidden">
+        {/* Form Section */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center px-4 py-8 lg:py-0">
+          <div className="w-full max-w-md p-4 lg:p-6">
             <div className="mb-6 text-center">
               <h2 className="text-xl font-medium text-textBlack">
                 Sign in to your account
@@ -139,9 +136,7 @@ const SignIn = () => {
                 disabled={loading}
                 className="w-full rounded-md bg-gradient-to-b from-[#637257] to-[#4b5942] px-4 py-2 text-sm font-medium text-white hover:from-[#4b5942] hover:to-[#3c4735] focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
-                {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : null}
+                {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                 Sign In
               </button>
 
@@ -202,19 +197,21 @@ const SignIn = () => {
             </form>
           </div>
         </div>
-        <div className="w-1/2 bg-black relative">
+
+        {/* Image Section */}
+        <div className="w-full lg:w-1/2 h-64 lg:h-auto relative order-first lg:order-last hidden md:block">
           <img
             src="/recipes/cover1.jfif"
             alt="Auth background"
             className="w-full h-full object-cover"
           />
-          <div className="absolute bottom-16 left-8 max-w-sm flex flex-col items-start">
-            <QuoteLeft className="text-textWhite mb-3" />
-            <blockquote className="italic text-textWhite text-base">
+          <div className="absolute bottom-4 lg:bottom-16 left-4 lg:left-8 max-w-sm flex flex-col items-start px-4 lg:px-0">
+            <QuoteLeft className="text-textWhite mb-2 lg:mb-3" />
+            <blockquote className="italic text-textWhite text-sm lg:text-base">
               The food you eat can be either the safest and most powerful form
               of medicine or the slowest form of poison.
             </blockquote>
-            <p className="mt-3 text-textWhite text-xs">
+            <p className="mt-2 lg:mt-3 text-textWhite text-xs">
               - Ann Wigmore, Holistic Health Practitioner
             </p>
           </div>

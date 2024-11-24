@@ -60,6 +60,7 @@ const Navbar: React.FC<NavbarProps> = ({ showFilters }) => {
               >
                 Profile
               </Link>
+              
             )}
             {!user && (
               <>
