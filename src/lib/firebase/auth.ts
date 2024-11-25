@@ -54,8 +54,6 @@ const CONFIG = {
   SESSION_DURATION: 2 * 60 * 60 * 1000, // 2 hours
 } as const;
 
-
-
 // Types
 interface LoginAttempts {
   [email: string]: {
@@ -420,19 +418,32 @@ export const signInWithGoogle = async (
     const user = result.user;
     const userRef = doc(db, "users", user.uid);
 
-    await updateUserData(userRef, {
-      displayName: user.displayName,
-      email: user.email,
-      provider: "google",
-    });
-
+    // Check if user document exists
     const userDoc = await getDoc(userRef);
     const userData = userDoc.data();
 
+    // Only set createdAt if it doesn't exist
+    const userUpdateData: Record<string, any> = {
+      displayName: user.displayName,
+      email: user.email,
+      provider: "google",
+    };
+
+    if (!userData?.createdAt) {
+      userUpdateData.createdAt = serverTimestamp();
+    }
+
+    await updateUserData(userRef, userUpdateData);
+
+    // Refresh user document to get the latest data
+    const updatedUserDoc = await getDoc(userRef);
+    const updatedUserData = updatedUserDoc.data();
+
     const userWithMetadata: User = {
       ...user,
-      createdAt: userData?.createdAt?.toDate().toISOString(),
+      createdAt: updatedUserData?.createdAt?.toDate().toISOString(),
     };
+
     await authManager.startSessionTimeout(userWithMetadata);
 
     // Update the user state immediately
