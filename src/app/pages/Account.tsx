@@ -206,7 +206,6 @@ const Account: React.FC = () => {
         onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
         className="flex items-center gap-2 p-2 bg-primary/30 text-sm text-textBlack rounded-sm mb-4"
       >
-        {/* <Filter size={18} /> */}
         {isMobileFilterOpen ? "Hide Filters" : "Show Filters"}
       </button>
       {isMobileFilterOpen && (
@@ -215,7 +214,10 @@ const Account: React.FC = () => {
             <div>
               <h3 className="font-medium mb-2">Types</h3>
               {["Vegetarian", "Vegan", "Gluten Free"].map((type) => (
-                <label key={type} className="flex items-center text-sm gap-2 mb-2">
+                <label
+                  key={type}
+                  className="flex items-center text-sm gap-2 mb-2"
+                >
                   <input
                     type="checkbox"
                     checked={filters.types.includes(type)}
@@ -229,7 +231,10 @@ const Account: React.FC = () => {
             <div>
               <h3 className="font-medium mb-2">Category</h3>
               {["Breakfast", "Lunch", "Dinner", "Dessert"].map((category) => (
-                <label key={category} className="flex items-center text-sm gap-2 mb-2">
+                <label
+                  key={category}
+                  className="flex items-center text-sm gap-2 mb-2"
+                >
                   <input
                     type="checkbox"
                     checked={filters.categories.includes(category)}

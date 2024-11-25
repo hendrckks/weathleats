@@ -3,20 +3,33 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import MobileSidebar from "./MobileNavbar";
+// import { signOut } from "../../lib/firebase/auth";
+
 interface NavbarProps {
   showFilters?: boolean;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ showFilters }) => {
   const { pathname } = useLocation();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  // const navigate = useNavigate();
 
   // Helper function to check if current route is an auth route
   const isAuthRoute =
     pathname === "/login" ||
     pathname === "/signup" ||
     pathname === "/reset-password";
+
+  // const handleSignOut = async () => {
+  //   try {
+  //     await signOut();
+  //     setUser(null);
+  //     navigate("/");
+  //   } catch (error) {
+  //     console.error("Error signing out:", error);
+  //   }
+  // };
 
   return (
     <header className="fixed left-0 right-0 top-0 z-50 h-16 border-b border-primary/50 bg-background shadow-sm">
@@ -58,28 +71,40 @@ const Navbar: React.FC<NavbarProps> = ({ showFilters }) => {
 
         {/* Auth Buttons and Hamburger Menu */}
         <div className="flex items-center gap-4">
-          {!isAuthRoute && user && pathname !== "/profile" && (
-            <Link
-              to="/profile"
-              className="py-2 px-3 bg-primary text-textWhite text-sm rounded-[4px]"
-            >
-              Profile
-            </Link>
-          )}
-          {!isAuthRoute && !user && (
+          {!loading && (
             <>
-              <Link
-                to="/signup"
-                className="hidden md:block p-2 text-sm text-textBlack"
-              >
-                Sign up
-              </Link>
-              <Link
-                to="/login"
-                className="py-2 px-3 bg-[#637257] text-textWhite text-xs rounded-md"
-              >
-                Login
-              </Link>
+              {!isAuthRoute && user && (
+                <>
+                  <Link
+                    to="/profile"
+                    className="py-2 px-3 bg-primary text-textWhite text-sm rounded-[4px]"
+                  >
+                    Profile
+                  </Link>
+                  {/* <button
+                    onClick={handleSignOut}
+                    className="py-2 px-3 bg-[#637257] text-textWhite text-xs rounded-md"
+                  >
+                    Sign Out
+                  </button> */}
+                </>
+              )}
+              {!isAuthRoute && !user && (
+                <>
+                  <Link
+                    to="/signup"
+                    className="hidden md:block p-2 text-sm text-textBlack"
+                  >
+                    Sign up
+                  </Link>
+                  <Link
+                    to="/login"
+                    className="py-2 px-3 bg-[#637257] text-textWhite text-xs rounded-md"
+                  >
+                    Login
+                  </Link>
+                </>
+              )}
             </>
           )}
           <button

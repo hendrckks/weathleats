@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { User, KeyRound, Mail } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { QuoteLeft } from "../../assets/icons/Quotes";
-import { signUp, signInWithGoogle } from "../../lib/firebase/auth";
+import { signInWithGoogle, signUp } from "../../lib/firebase/auth";
 import { SignUpInput } from "../../types/auth";
 import { toast } from "../../hooks/useToast";
+import { useAuth } from "../../context/AuthContext";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const SignUp = () => {
     email: "",
     password: "",
   });
+  const { setUser } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -64,7 +66,7 @@ const SignUp = () => {
     setLoading(true);
     setError(null);
     try {
-      await signInWithGoogle();
+      await signInWithGoogle(setUser);
       navigate("/");
       toast({
         title: "Success",

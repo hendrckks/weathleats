@@ -3,6 +3,7 @@ import { KeyRound, Mail, Loader2 } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { QuoteLeft } from "../../assets/icons/Quotes";
 import { login, signInWithGoogle } from "../../lib/firebase/auth";
+import { useAuth } from "../../context/AuthContext";
 import { toast } from "../../hooks/useToast";
 
 const SignIn = () => {
@@ -13,6 +14,7 @@ const SignIn = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [_message, setMessage] = useState<string | null>(null);
+  const { setUser } = useAuth();
 
   useEffect(() => {
     const state = location.state;
@@ -31,7 +33,7 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      await login({ email, password });
+      await login({ email, password }, setUser);
       const from = (location.state as any)?.from?.pathname || "/profile";
       navigate(from, { replace: true });
       toast({
@@ -52,7 +54,7 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      await signInWithGoogle();
+      await signInWithGoogle(setUser);
       const from = (location.state as any)?.from?.pathname || "/profile";
       navigate(from, { replace: true });
     } catch (error: any) {

@@ -8,12 +8,14 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   NextOrObserver,
-  User,
   reauthenticateWithCredential,
   EmailAuthProvider,
   sendEmailVerification,
   updatePassword,
   AuthErrorCodes,
+  setPersistence,
+  browserSessionPersistence,
+  UserCredential,
 } from "firebase/auth";
 import {
   doc,
@@ -24,31 +26,35 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
+  setDoc,
+  Timestamp,
 } from "firebase/firestore";
 import { auth, db } from "./clientApp";
 import {
   SignUpInput,
   LoginInput,
   ResetPasswordInput,
+  User,
   signUpSchema,
   loginSchema,
   resetPasswordSchema,
-  getZodErrorMessage,
   passwordChangeSchema,
+  getZodErrorMessage,
 } from "../../types/auth";
-import { SESSION_DURATION } from "./config";
 import { ZodError } from "zod";
 
-// Enhanced configuration
+// Configuration
 const CONFIG = {
   MAX_LOGIN_ATTEMPTS: 5,
   LOCKOUT_DURATION: 15 * 60 * 1000, // 15 minutes
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000, // 1 second
   SESSION_CHECK_INTERVAL: 60000, // 1 minute
+  SESSION_DURATION: 2 * 60 * 60 * 1000, // 2 hours
 } as const;
 
-// Enhanced types
+// Types
 interface LoginAttempts {
   [email: string]: {
     count: number;
@@ -119,15 +125,47 @@ class AuthStateManager {
     }
   }
 
-  startSessionTimeout(callback: () => void) {
+  async startSessionTimeout(_user: User) {
     this.clearSessionTimeout();
-    this.sessionTimeout = setTimeout(callback, SESSION_DURATION);
+
+    // Set session persistence
+    await setPersistence(auth, browserSessionPersistence);
+
+    // Set session expiration time
+    const expirationTime = Date.now() + CONFIG.SESSION_DURATION;
+    localStorage.setItem("sessionExpiration", expirationTime.toString());
+
+    this.sessionTimeout = setTimeout(() => {
+      this.signOut();
+    }, CONFIG.SESSION_DURATION);
   }
 
   clearSessionTimeout() {
     if (this.sessionTimeout) {
       clearTimeout(this.sessionTimeout);
       this.sessionTimeout = null;
+    }
+    localStorage.removeItem("sessionExpiration");
+  }
+
+  async checkSession(): Promise<boolean> {
+    const expirationTime = localStorage.getItem("sessionExpiration");
+    if (expirationTime) {
+      if (Date.now() > parseInt(expirationTime)) {
+        await this.signOut();
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  async signOut() {
+    try {
+      await firebaseSignOut(auth);
+      this.clearSessionTimeout();
+    } catch (error) {
+      console.error("Error signing out:", error);
     }
   }
 
@@ -234,11 +272,11 @@ async function updateUserData(
   });
 }
 
-// Main authentication functions
 export const signUp = async (userData: SignUpInput) => {
   try {
     const validatedData = signUpSchema.parse(userData);
 
+    // Check if email exists in users collection
     const usersRef = collection(db, "users");
     const emailQuery = query(
       usersRef,
@@ -261,21 +299,19 @@ export const signUp = async (userData: SignUpInput) => {
     );
 
     const user = userCredential.user;
+    const createdAt = serverTimestamp();
 
     await Promise.all([
       sendEmailVerification(user),
       updateProfile(user, {
         displayName: validatedData.displayName,
       }),
-      updateUserData(
-        doc(db, "users", user.uid),
-        {
-          displayName: validatedData.displayName,
-          email: validatedData.email.toLowerCase(),
-          createdAt: serverTimestamp(),
-        },
-        false
-      ),
+      setDoc(doc(db, "users", user.uid), {
+        displayName: validatedData.displayName,
+        email: validatedData.email.toLowerCase(),
+        createdAt: createdAt,
+        favorites: [],
+      }),
     ]);
 
     await firebaseSignOut(auth);
@@ -291,17 +327,34 @@ export const signUp = async (userData: SignUpInput) => {
   }
 };
 
-export const login = async (userData: LoginInput) => {
+export const login = async (
+  loginData: LoginInput,
+  setUser: (user: User | null) => void
+): Promise<User> => {
   const authManager = AuthStateManager.getInstance();
 
   try {
-    const validatedData = loginSchema.parse(userData);
+    const validatedData = loginSchema.parse(loginData);
 
     if (authManager.isUserLockedOut(validatedData.email)) {
       throw new Error("Account is temporarily locked. Please try again later.");
     }
 
-    const userCredential = await withRetry(() =>
+    // Check if the email exists in the users collection
+    const usersRef = collection(db, "users");
+    const emailQuery = query(
+      usersRef,
+      where("email", "==", validatedData.email.toLowerCase())
+    );
+    const querySnapshot = await getDocs(emailQuery);
+
+    if (querySnapshot.empty) {
+      throw new Error(
+        "This email is not registered. Please sign up to use it."
+      );
+    }
+
+    const userCredential: UserCredential = await withRetry(() =>
       signInWithEmailAndPassword(
         auth,
         validatedData.email,
@@ -312,36 +365,49 @@ export const login = async (userData: LoginInput) => {
     const user = userCredential.user;
 
     if (!user.emailVerified) {
-      await firebaseSignOut(auth);
+      await auth.signOut();
       throw new Error("Please verify your email before logging in.");
     }
 
     authManager.recordLoginAttempt(validatedData.email, true);
 
-    await updateUserData(doc(db, "users", user.uid), {});
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    const userData = userDoc.data();
 
-    authManager.startSessionTimeout(() => {
-      signOut();
-    });
+    const userWithMetadata: User = {
+      ...user,
+      createdAt:
+        userData?.createdAt instanceof Timestamp
+          ? userData.createdAt.toDate().toISOString()
+          : undefined,
+    };
 
-    return user;
-  } catch (error: any) {
+    await authManager.startSessionTimeout(userWithMetadata);
+
+    // Update the user state immediately
+    setUser(userWithMetadata);
+
+    return userWithMetadata;
+  } catch (error: unknown) {
     if (error instanceof ZodError) {
       throw new Error(getZodErrorMessage(error));
     }
 
     if (
-      error?.code === AuthErrorCodes.INVALID_PASSWORD ||
-      error?.code === AuthErrorCodes.USER_DELETED
+      error instanceof Error &&
+      (error.name === AuthErrorCodes.INVALID_PASSWORD ||
+        error.name === AuthErrorCodes.USER_DELETED)
     ) {
-      authManager.recordLoginAttempt(userData.email, false);
+      authManager.recordLoginAttempt(loginData.email, false);
     }
 
     return handleAuthError(error);
   }
 };
 
-export const signInWithGoogle = async () => {
+export const signInWithGoogle = async (
+  setUser: (user: User | null) => void
+) => {
   const authManager = AuthStateManager.getInstance();
 
   try {
@@ -358,11 +424,19 @@ export const signInWithGoogle = async () => {
       provider: "google",
     });
 
-    authManager.startSessionTimeout(() => {
-      signOut();
-    });
+    const userDoc = await getDoc(userRef);
+    const userData = userDoc.data();
 
-    return user;
+    const userWithMetadata: User = {
+      ...user,
+      createdAt: userData?.createdAt?.toDate().toISOString(),
+    };
+    await authManager.startSessionTimeout(userWithMetadata);
+
+    // Update the user state immediately
+    setUser(userWithMetadata);
+
+    return userWithMetadata;
   } catch (error) {
     return handleAuthError(error);
   }
@@ -434,17 +508,16 @@ export const resendVerificationEmail = async (user: User) => {
 
 export const signOut = async () => {
   const authManager = AuthStateManager.getInstance();
-
-  try {
-    await withRetry(() => firebaseSignOut(auth));
-    authManager.clearSessionTimeout();
-  } catch (error) {
-    return handleAuthError(error);
-  }
+  await authManager.signOut();
 };
 
 export const onAuthStateChanged = (cb: NextOrObserver<User>) => {
   return firebaseOnAuthStateChanged(auth, cb);
+};
+
+export const checkSession = async (): Promise<boolean> => {
+  const authManager = AuthStateManager.getInstance();
+  return authManager.checkSession();
 };
 
 // Cleanup function for use in app shutdown

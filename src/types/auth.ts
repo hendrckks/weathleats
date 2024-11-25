@@ -1,10 +1,7 @@
 import { z } from "zod";
+import { User as FirebaseUser } from "firebase/auth";
 
-export interface User {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  photoURL: string | null;
+export interface User extends FirebaseUser {
   createdAt?: string;
 }
 
