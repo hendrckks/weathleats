@@ -251,7 +251,7 @@ const Home = () => {
           onSearchInputChange={handleSearchInputChange}
         />
       </div>
-      <div className="text-textBlack md:ml-[317px] mb-10">
+      <div className="text-textBlack md:ml-[317px] xl:ml-[280px] 2xl:ml-[317px] mb-10">
         <div className="p-4 md:p-10">
           <div className="flex flex-col gap-5">
             <div className="flex flex-col md:flex-row justify-between">
@@ -273,7 +273,7 @@ const Home = () => {
                   </p>
                 </div>
               </div>
-              <div className="bg-primary/90 rounded-md w-full md:w-[500px] mt-6 md:mt-0 mx-auto space-y-2 p-2">
+              <div className="bg-primary/90 rounded-md w-full h-full md:w-[500px] mt-6 md:mt-0 mx-auto space-y-2 p-2">
                 <div className="bg-[#637257] p-4 text-textWhite rounded-md space-y-3 text-xs md:text-sm">
                   <div className="flex gap-2 items-center">
                     <Target className="h-5" />
@@ -432,7 +432,7 @@ const Home = () => {
                 : "Suggested Recipes"}
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {isLoading ? (
                 Array(6)
                   .fill(0)
@@ -453,7 +453,7 @@ const Home = () => {
                     <RecipeCard key={recipe.id} {...recipe} isLoading={false} />
                   ))
                 ) : (
-                  <div className="col-span-3 text-center">
+                  <div className="col-span-full text-center">
                     No search results found.
                   </div>
                 )
