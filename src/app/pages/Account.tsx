@@ -26,6 +26,30 @@ const Account: React.FC = () => {
   const [sortOption, setSortOption] = useState<string | null>(null);
   const navigate = useNavigate();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  // const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isDropdownOpen && event.target instanceof Node) {
+        const dropdownElement = document.querySelector(".sort-dropdown");
+        if (dropdownElement && !dropdownElement.contains(event.target)) {
+          setIsDropdownOpen(false);
+        }
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [isDropdownOpen]);
 
   const [filters, setFilters] = useState({
     types: [] as string[],
@@ -167,6 +191,7 @@ const Account: React.FC = () => {
 
   const handleSort = (option: string) => {
     setSortOption(option);
+    setIsDropdownOpen(false);
     let sortedRecipes = [...filteredRecipes];
     switch (option) {
       case "calories-high-low":
@@ -350,10 +375,15 @@ const Account: React.FC = () => {
                   {filteredRecipes.length} of {favoriteRecipes.length} saved
                   recipe(s)
                 </p>
-                <div className="relative">
+                <div className="relative sort-dropdown">
                   <div
-                    className="p-2 w-fit text-sm rounded-sm bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer hover:bg-primary/30 transition-colors"
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className={`p-2 w-fit text-sm rounded-sm bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer transition-colors ${
+                      isMobile ? "" : "hover:bg-primary/30"
+                    }`}
+                    onClick={() =>
+                      isMobile && setIsDropdownOpen(!isDropdownOpen)
+                    }
+                    onMouseEnter={() => !isMobile && setIsDropdownOpen(true)}
                   >
                     {sortOption ? (
                       <>
@@ -362,6 +392,7 @@ const Account: React.FC = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                             clearSort();
+                            setIsDropdownOpen(false);
                           }}
                           className="ml-2"
                         >
@@ -380,7 +411,10 @@ const Account: React.FC = () => {
                     )}
                   </div>
                   {isDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-[2px] bg-background border text-sm border-primary/40 shadow-lg rounded-sm w-56 py-1 px-1 z-50">
+                    <div
+                      className="absolute right-0 top-full mt-[2px] bg-background border text-sm border-primary/40 shadow-lg rounded-sm w-56 py-1 px-1 z-50"
+                      onMouseLeave={() => !isMobile && setIsDropdownOpen(false)}
+                    >
                       <div
                         className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer p-2 ${
                           sortOption === "calories-high-low"

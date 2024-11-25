@@ -43,6 +43,29 @@ const Home = () => {
   const [searchResults, setSearchResults] = useState<InitialRecipe[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isDropdownOpen && event.target instanceof Node) {
+        const dropdownElement = document.querySelector(".sort-dropdown");
+        if (dropdownElement && !dropdownElement.contains(event.target)) {
+          setIsDropdownOpen(false);
+        }
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [isDropdownOpen]);
 
   const [filters, setFilters] = useState({
     types: [] as string[],
@@ -179,6 +202,7 @@ const Home = () => {
 
   const handleSort = (option: string) => {
     setSortOption(option);
+    setIsDropdownOpen(false);
     let sortedRecipes = [...filteredRecipes];
     switch (option) {
       case "calories-high-low":
@@ -281,15 +305,25 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="relative flex gap-2 items-center">
+            <div className="relative sort-dropdown flex gap-2 items-center">
               <div
-                className="p-2 w-fit text-sm rounded-sm mt-4 bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer hover:bg-primary/30 transition-colors"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`p-2 w-fit text-sm rounded-sm mt-4 bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer transition-colors ${
+                  isMobile ? "" : "hover:bg-primary/30"
+                }`}
+                onClick={() => isMobile && setIsDropdownOpen(!isDropdownOpen)}
+                onMouseEnter={() => !isMobile && setIsDropdownOpen(true)}
               >
                 {sortOption ? (
                   <>
                     <span>{sortOption}</span>
-                    <button onClick={clearSort} className="ml-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        clearSort();
+                        setIsDropdownOpen(false);
+                      }}
+                      className="ml-2"
+                    >
                       <X className="h-4 w-4" />
                     </button>
                   </>
@@ -305,8 +339,10 @@ const Home = () => {
                 )}
               </div>
               {isDropdownOpen && (
-                <div className="absolute left-0 top-full text-sm mt-[2px] bg-background border border-primary/40 shadow-lg rounded-sm w-56 py-1 px-1 z-50">
-                  {/* ... (keep the existing dropdown content) */}
+                <div
+                  className="absolute left-0 top-full text-sm mt-[2px] bg-background border border-primary/40 shadow-lg rounded-sm w-56 py-1 px-1 z-50"
+                  onMouseLeave={() => !isMobile && setIsDropdownOpen(false)}
+                >
                   <div
                     className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer p-2 ${
                       sortOption === "calories-high-low" ? "bg-primary/20" : ""
