@@ -19,7 +19,8 @@ const Navbar: React.FC<NavbarProps> = ({ showFilters }) => {
   const isAuthRoute =
     pathname === "/login" ||
     pathname === "/signup" ||
-    pathname === "/reset-password";
+    pathname === "/reset-password" ||
+    pathname === "/profile";
 
   // const handleSignOut = async () => {
   //   try {
@@ -71,42 +72,32 @@ const Navbar: React.FC<NavbarProps> = ({ showFilters }) => {
 
         {/* Auth Buttons and Hamburger Menu */}
         <div className="flex items-center gap-4">
-          {!loading && (
+          {!loading && user && !isAuthRoute && (
+            <Link
+              to="/profile"
+              className="py-2 px-3 bg-primary text-textWhite text-sm rounded-[4px]"
+            >
+              Profile
+            </Link>
+          )}
+
+          {!loading && !user && !isAuthRoute && (
             <>
-              {!isAuthRoute && user && (
-                <>
-                  <Link
-                    to="/profile"
-                    className="py-2 px-3 bg-primary text-textWhite text-sm rounded-[4px]"
-                  >
-                    Profile
-                  </Link>
-                  {/* <button
-                    onClick={handleSignOut}
-                    className="py-2 px-3 bg-[#637257] text-textWhite text-xs rounded-md"
-                  >
-                    Sign Out
-                  </button> */}
-                </>
-              )}
-              {!isAuthRoute && !user && (
-                <>
-                  <Link
-                    to="/signup"
-                    className="hidden md:block p-2 text-sm text-textBlack"
-                  >
-                    Sign up
-                  </Link>
-                  <Link
-                    to="/login"
-                    className="py-2 px-3 bg-[#637257] text-textWhite text-xs rounded-md"
-                  >
-                    Login
-                  </Link>
-                </>
-              )}
+              <Link
+                to="/signup"
+                className="hidden md:block p-2 text-sm text-textBlack"
+              >
+                Sign up
+              </Link>
+              <Link
+                to="/login"
+                className="py-2 px-3 bg-[#637257] text-textWhite text-xs rounded-md"
+              >
+                Login
+              </Link>
             </>
           )}
+
           <button
             onClick={() => setIsOpen(true)}
             className="p-2 text-gray-600 block md:hidden hover:text-gray-900"

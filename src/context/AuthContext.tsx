@@ -23,7 +23,13 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    // Check if there's a valid session on initial load
+    const sessionExpiration = localStorage.getItem("sessionExpiration");
+    return sessionExpiration && Date.now() < parseInt(sessionExpiration)
+      ? JSON.parse(localStorage.getItem("user") || "null")
+      : null;
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,15 +45,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               createdAt: userData?.createdAt?.toDate().toISOString(),
             };
             setUser(userWithMetadata);
+            // Persist user in localStorage
+            localStorage.setItem("user", JSON.stringify(userWithMetadata));
           } catch (error) {
             console.error("Error fetching user data:", error);
             setUser(null);
+            localStorage.removeItem("user");
           }
         } else {
           setUser(null);
+          localStorage.removeItem("user");
         }
       } else {
         setUser(null);
+        localStorage.removeItem("user");
       }
       setLoading(false);
     });

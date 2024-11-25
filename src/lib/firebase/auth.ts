@@ -54,6 +54,8 @@ const CONFIG = {
   SESSION_DURATION: 2 * 60 * 60 * 1000, // 2 hours
 } as const;
 
+
+
 // Types
 interface LoginAttempts {
   [email: string]: {
