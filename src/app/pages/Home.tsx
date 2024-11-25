@@ -296,7 +296,7 @@ const Home = () => {
                     Get full access
                   </Link>
                   <Link
-                    to="/s"
+                    to="/"
                     className="w-1/2 text-center md:p-4 p-3 text-textWhite md:text-sm text-xs cursor-pointer"
                   >
                     Subscribe
