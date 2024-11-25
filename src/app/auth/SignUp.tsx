@@ -54,28 +54,7 @@ const SignUp = () => {
         }, 2000);
       }
     } catch (err: any) {
-      let errorMessage = "Failed to create account";
-
-      if (err.message?.includes("already registered")) {
-        errorMessage =
-          "This email is already registered. Please try signing in.";
-      } else if (err.code === "auth/invalid-email") {
-        errorMessage = "Please enter a valid email address.";
-      } else if (err.code === "auth/weak-password") {
-        errorMessage = "Password must be at least 6 characters long.";
-      } else if (err.message?.includes("Password must contain")) {
-        errorMessage =
-          "Password must contain at least one uppercase letter and one number.";
-      } else if (err.message?.includes("Display name")) {
-        errorMessage = "Display name must be at least 6 characters long.";
-      } else if (err.code === "auth/network-request-failed") {
-        errorMessage =
-          "Network error. Please check your internet connection and try again.";
-      } else if (err.code === "auth/too-many-requests") {
-        errorMessage = "Too many attempts. Please try again later.";
-      }
-
-      setError(errorMessage);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -92,12 +71,8 @@ const SignUp = () => {
         description: "Sign In successful",
         duration: 3000,
       });
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "An error occurred during Google sign in"
-      );
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }

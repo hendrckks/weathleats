@@ -1,12 +1,12 @@
 import { z } from "zod";
 
 export interface User {
-    uid: string;
-    email: string | null;
-    displayName: string | null;
-    photoURL: string | null;
-    createdAt?: string; 
-  }
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  createdAt?: string;
+}
 
 export interface AuthContextType {
   user: User | null;
@@ -14,60 +14,69 @@ export interface AuthContextType {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
+// Helper function to format Zod errors
+export const getZodErrorMessage = (error: z.ZodError): string => {
+  return error.errors[0]?.message || "Validation error";
+};
+
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters long")
+  .refine(
+    (password) => /[A-Z]/.test(password),
+    "Password must include an uppercase letter"
+  )
+  .refine(
+    (password) => /[a-z]/.test(password),
+    "Password must include a lowercase letter"
+  )
+  .refine(
+    (password) => /[0-9]/.test(password),
+    "Password must include a number"
+  )
+  .refine(
+    (password) => /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    "Password must include a special character"
+  );
 
 export const signUpSchema = z.object({
   email: z
     .string()
-    .email("Invalid email address")
-    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, {
-      message: "Please enter a valid email format.",
-    }),
-  password: z
+    .min(1, "Email is required")
+    .email("Please enter a valid email"),
+  password: passwordSchema,
+  displayName: z
     .string()
-    .min(6, "Password must be at least 6 characters long")
-    .regex(/^(?=.*[A-Z])(?=.*\d)/, {
-      message:
-        "Password must contain at least one uppercase letter and one number.",
-    }),
-  displayName: z.string().min(6, "Display name is required"),
+    .min(2, "Name must be at least 2 characters")
+    .max(50, "Name is too long"),
 });
 
 export const loginSchema = z.object({
   email: z
     .string()
-    .email("Invalid email address")
-    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, {
-      message: "Please enter a valid email format.",
-    }),
-  password: z
-    .string()
-    .min(1, "Password is required")
-    .regex(/^(?=.*[A-Z])(?=.*\d)/, {
-      message:
-        "Password must contain at least one uppercase letter and one number.",
-    }),
+    .min(1, "Email is required")
+    .email("Please enter a valid email"),
+  password: z.string().min(1, "Password is required"),
 });
 
 export const resetPasswordSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email"),
 });
 
 export const passwordChangeSchema = z
   .object({
     currentPassword: z.string().min(1, "Current password is required"),
-    newPassword: z
-      .string()
-      .min(6, "New password must be at least 6 characters long"),
-    confirmPassword: z.string().min(1, "Confirm your new password"),
+    newPassword: passwordSchema,
+    confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords must match",
+    message: "Passwords don't match",
     path: ["confirmPassword"],
   });
 
-//   export type CookieCollectionInput = z.infer<typeof cookieCollectionSchema>;
-//   export type IndividualCookieInput = z.infer<typeof individualCookieSchema>;
-//   export type OrderInput = z.infer<typeof orderSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

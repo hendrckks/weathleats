@@ -15,6 +15,7 @@ const ResetPassword = () => {
   const [countdown, setCountdown] = useState(0);
   const [canResend, setCanResend] = useState(true);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [_error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -47,6 +48,7 @@ const ResetPassword = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
     try {
       const resetData: ResetPasswordInput = { email };
@@ -59,17 +61,12 @@ const ResetPassword = () => {
         toast({
           title: "Success",
           variant: "success",
-          description: "Reset link sent successfully",
+          description: result.message,
           duration: 5000,
         });
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        variant: "error",
-        description: error.message || "Failed to send reset link",
-        duration: 5000,
-      });
+      setError(error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -81,6 +78,7 @@ const ResetPassword = () => {
     }
 
     setIsSubmitting(true);
+    setError(null);
     try {
       const resetData: ResetPasswordInput = { email };
       const result = await resetPassword(resetData);
@@ -90,17 +88,12 @@ const ResetPassword = () => {
         toast({
           title: "Success",
           variant: "success",
-          description: "Reset link sent successfully",
+          description: result.message,
           duration: 5000,
         });
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        variant: "error",
-        description: error.message || "Failed to resend reset link",
-        duration: 5000,
-      });
+      setError(error.message);
     } finally {
       setIsSubmitting(false);
     }

@@ -41,23 +41,7 @@ const SignIn = () => {
         duration: 5000,
       });
     } catch (error: any) {
-      let errorMessage = "Failed to sign in";
-
-      if (error.code === "auth/wrong-password") {
-        errorMessage = "Invalid password. Please try again.";
-      } else if (error.code === "auth/user-not-found") {
-        errorMessage = "No account found with this email.";
-      } else if (error.code === "auth/invalid-email") {
-        errorMessage = "Please enter a valid email address.";
-      } else if (error.code === "auth/invalid-credential") {
-        errorMessage =
-          "Invalid credentials. Please check your email and password.";
-      } else if (error.message.includes("Password must contain")) {
-        errorMessage =
-          "Password must contain at least one uppercase letter and one number.";
-      }
-
-      setError(errorMessage);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -72,7 +56,7 @@ const SignIn = () => {
       const from = (location.state as any)?.from?.pathname || "/profile";
       navigate(from, { replace: true });
     } catch (error: any) {
-      setError(error.message || "Failed to sign in with Google");
+      setError(error.message);
     } finally {
       setLoading(false);
     }

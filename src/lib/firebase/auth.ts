@@ -17,8 +17,6 @@ import {
 } from "firebase/auth";
 import {
   doc,
-  // getDoc,
-  // setDoc,
   serverTimestamp,
   runTransaction,
   DocumentReference,
@@ -35,10 +33,11 @@ import {
   signUpSchema,
   loginSchema,
   resetPasswordSchema,
+  getZodErrorMessage,
+  passwordChangeSchema,
 } from "../../types/auth";
 import { SESSION_DURATION } from "./config";
 import { ZodError } from "zod";
-import { toast } from "../../hooks/useToast";
 
 // Enhanced configuration
 const CONFIG = {
@@ -50,13 +49,6 @@ const CONFIG = {
 } as const;
 
 // Enhanced types
-// interface AuthState {
-//   isAuthenticated: boolean;
-//   user: User | null;
-//   loading: boolean;
-//   error: Error | null;
-// }
-
 interface LoginAttempts {
   [email: string]: {
     count: number;
@@ -126,7 +118,6 @@ class AuthStateManager {
       }
     }
   }
-  
 
   startSessionTimeout(callback: () => void) {
     this.clearSessionTimeout();
@@ -180,18 +171,19 @@ async function withRetry<T>(
 
 // Enhanced error handling
 const handleAuthError = (error: any): never => {
+  console.error("Auth error:", error); // Log the full error for debugging
   const errorMessage = (() => {
     switch (error?.code) {
       case AuthErrorCodes.EMAIL_EXISTS:
         return "This email is already in use. Please use a different email or sign in.";
       case AuthErrorCodes.USER_DELETED:
-        return "Account not found. Please check your credentials or sign up.";
+        return "No account found with this email. Please check your credentials or sign up.";
       case AuthErrorCodes.INVALID_PASSWORD:
-        return "Invalid password. Please try again.";
+        return "Incorrect password. Please try again.";
       case AuthErrorCodes.INVALID_LOGIN_CREDENTIALS:
-        return "Invalid credentials. Please try again.";
+        return "Invalid email or password. Please check your credentials.";
       case AuthErrorCodes.TOO_MANY_ATTEMPTS_TRY_LATER:
-        return "Too many failed attempts. Please try again later.";
+        return "Too many failed attempts. Please try again later or reset your password.";
       case AuthErrorCodes.INVALID_EMAIL:
         return "Invalid email format. Please enter a valid email address.";
       case AuthErrorCodes.NETWORK_REQUEST_FAILED:
@@ -200,11 +192,12 @@ const handleAuthError = (error: any): never => {
         return "Sign in popup was closed. Please try again.";
       case "auth/requires-recent-login":
         return "This operation requires recent authentication. Please log in again.";
-      case "firestore/unavailable":
-        return "The service is temporarily unavailable. Please try again later.";
+      case "auth/user-disabled":
+        return "This account has been disabled. Please contact support.";
       default:
-        console.error("Unhandled auth error:", error);
-        return error;
+        return (
+          error.message || "An unexpected error occurred. Please try again."
+        );
     }
   })();
 
@@ -246,7 +239,6 @@ export const signUp = async (userData: SignUpInput) => {
   try {
     const validatedData = signUpSchema.parse(userData);
 
-    // Check if email exists in users collection
     const usersRef = collection(db, "users");
     const emailQuery = query(
       usersRef,
@@ -255,12 +247,6 @@ export const signUp = async (userData: SignUpInput) => {
     const querySnapshot = await getDocs(emailQuery);
 
     if (!querySnapshot.empty) {
-      toast({
-        title: "Email already exists",
-        variant: "error",
-        description: "This email is already registered. Please try signing in.",
-        duration: 5000,
-      });
       throw new Error(
         "This email is already registered. Please try signing in."
       );
@@ -285,7 +271,7 @@ export const signUp = async (userData: SignUpInput) => {
         doc(db, "users", user.uid),
         {
           displayName: validatedData.displayName,
-          email: validatedData.email.toLowerCase(), // Store email in lowercase
+          email: validatedData.email.toLowerCase(),
           createdAt: serverTimestamp(),
         },
         false
@@ -293,23 +279,18 @@ export const signUp = async (userData: SignUpInput) => {
     ]);
 
     await firebaseSignOut(auth);
-    toast({
-      title: "",
-      variant: "success",
-      description: "Verification email sent. Please check your inbox.",
-      duration: 5000,
-    });
     return {
       success: true,
       message: "Verification email sent. Please check your inbox.",
     };
   } catch (error: any) {
     if (error instanceof ZodError) {
-      throw error;
+      throw new Error(getZodErrorMessage(error));
     }
     return handleAuthError(error);
   }
 };
+
 export const login = async (userData: LoginInput) => {
   const authManager = AuthStateManager.getInstance();
 
@@ -317,12 +298,6 @@ export const login = async (userData: LoginInput) => {
     const validatedData = loginSchema.parse(userData);
 
     if (authManager.isUserLockedOut(validatedData.email)) {
-      toast({
-        title: "",
-        variant: "error",
-        description: "Account is temporarily locked. Please try again later.",
-        duration: 5000,
-      });
       throw new Error("Account is temporarily locked. Please try again later.");
     }
 
@@ -338,12 +313,6 @@ export const login = async (userData: LoginInput) => {
 
     if (!user.emailVerified) {
       await firebaseSignOut(auth);
-      toast({
-        title: "Warning",
-        variant: "warning",
-        description: "Please verify your email before logging in.",
-        duration: 5000,
-      });
       throw new Error("Please verify your email before logging in.");
     }
 
@@ -358,7 +327,7 @@ export const login = async (userData: LoginInput) => {
     return user;
   } catch (error: any) {
     if (error instanceof ZodError) {
-      throw error;
+      throw new Error(getZodErrorMessage(error));
     }
 
     if (
@@ -403,19 +372,13 @@ export const resetPassword = async (resetData: ResetPasswordInput) => {
   try {
     const validatedData = resetPasswordSchema.parse(resetData);
     await withRetry(() => sendPasswordResetEmail(auth, validatedData.email));
-    toast({
-      title: "Check your inbox",
-      variant: "success",
-      description: "Password reset email sent. Please check your inbox.",
-      duration: 5000,
-    });
     return {
       success: true,
       message: "Password reset email sent. Please check your inbox.",
     };
   } catch (error) {
     if (error instanceof ZodError) {
-      throw error;
+      throw new Error(getZodErrorMessage(error));
     }
     return handleAuthError(error);
   }
@@ -428,12 +391,6 @@ export const changePassword = async (
 ) => {
   try {
     if (!user.email) {
-      toast({
-        title: "Warning",
-        variant: "warning",
-        description: "User email not found",
-        duration: 5000,
-      });
       throw new Error("User email not found");
     }
 
@@ -444,19 +401,21 @@ export const changePassword = async (
 
     await withRetry(async () => {
       await reauthenticateWithCredential(user, credential);
+      passwordChangeSchema.parse({
+        currentPassword,
+        newPassword,
+        confirmPassword: newPassword,
+      });
       await updatePassword(user, newPassword);
-    });
-    toast({
-      title: "Successfully updated password",
-      variant: "success",
-      description: "Password successfully updated.",
-      duration: 5000,
     });
     return {
       success: true,
       message: "Password successfully updated.",
     };
   } catch (error) {
+    if (error instanceof ZodError) {
+      throw new Error(getZodErrorMessage(error));
+    }
     return handleAuthError(error);
   }
 };
@@ -464,12 +423,6 @@ export const changePassword = async (
 export const resendVerificationEmail = async (user: User) => {
   try {
     await withRetry(() => sendEmailVerification(user));
-    toast({
-      title: "Check your inbox",
-      variant: "success",
-      description: "Verification email resent. Please check your inbox.",
-      duration: 5000,
-    });
     return {
       success: true,
       message: "Verification email resent. Please check your inbox.",
