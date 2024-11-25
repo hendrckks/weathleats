@@ -290,10 +290,10 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
           </Link>
           <span className="ml-2">to join the conversation</span>
         </div>
-        <div className="text-textBlack">0 Comments</div>
+        {/* <div className="text-textBlack">0 Comments</div>
         <div className="py-12 px-4 md:px-20 bg-primary/15 text-textBlack md:w-1/3 w-2/3 md:text-base text-sm rounded-md text-center">
           Be the first to comment
-        </div>
+        </div> */}
       </div>
     </div>
   );
