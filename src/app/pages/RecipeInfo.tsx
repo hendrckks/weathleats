@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Minus, Plus, Check, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Recipe } from "../../types/firestore";
 import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import DietTag from "../../components/DieTag";
@@ -284,12 +284,12 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
         </div>
       </div>
       <div className="flex flex-col space-y-8 items-center text-lg mt-8">
-        <div className="">
+        {/* <div className="">
           <Link to="/login" className="text-primary underline">
             Login
           </Link>
           <span className="ml-2">to join the conversation</span>
-        </div>
+        </div> */}
         {/* <div className="text-textBlack">0 Comments</div>
         <div className="py-12 px-4 md:px-20 bg-primary/15 text-textBlack md:w-1/3 w-2/3 md:text-base text-sm rounded-md text-center">
           Be the first to comment
