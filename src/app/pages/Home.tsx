@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
   Heart,
@@ -51,6 +51,69 @@ const Home = () => {
   const [isForYou, setIsForYou] = useState(false);
   const { user } = useAuth();
   const [hasTrainingGoal, setHasTrainingGoal] = useState(false);
+
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+  // Prevent multiple renders of the header section
+  const renderHeader = useCallback(() => {
+    return (
+      <div className="flex flex-col md:flex-row justify-between">
+        <div>
+          <h1 className="text-4xl md:text-5xl">
+            1000 Plus performance <br className="hidden md:block" />
+            driven recipes for
+            <span className="text-[#4b5942] ml-3">athletes.</span>
+          </h1>
+          <div className="mt-6 md:mt-8">
+            <p className="font-medium">
+              Elevate your performance with precision nutrition.{" "}
+              <br className="hidden md:block" />
+              Our recipes are tailored for athletes who push{" "}
+              <br className="hidden md:block" /> their limits and demand the
+              best fuel for optimal results.
+            </p>
+          </div>
+        </div>
+        <div className="bg-primary/90 rounded-md w-full h-full md:w-[500px] mt-6 md:mt-0 mx-auto space-y-2 p-2">
+          <div className="bg-[#637257] p-4 text-textWhite rounded-md space-y-3 text-xs md:text-sm">
+            <div className="flex gap-2 items-center">
+              <Target className="h-5" />
+              <span>
+                Get recipe suggestions according to your Training goals
+              </span>
+            </div>
+            <div className="flex gap-2 items-center">
+              <Heart className="h-5" />
+              <span>Save favourite recipes to your profile</span>
+            </div>
+            <div className="flex gap-2 items-center">
+              <NotebookPen className="h-5" />
+              <span>Submit your own recipe</span>
+            </div>
+          </div>
+          <div className="flex">
+            <Link
+              to="/profile"
+              className="md:p-5 p-3 bg-background w-1/2 text-center md:text-sm text-xs rounded-md cursor-pointer hover:bg-background/90 transition-colors"
+            >
+              Get full access
+            </Link>
+            <Link
+              to="/s"
+              className="w-1/2 text-center md:p-4 p-3 text-textWhite md:text-sm text-xs cursor-pointer"
+            >
+              Subscribe
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }, []);
 
   const [filters, setFilters] = useState({
     types: [] as string[],
@@ -296,59 +359,7 @@ const Home = () => {
       <div className="text-textBlack md:ml-[317px] xl:ml-[280px] 2xl:ml-[317px] mb-10">
         <div className="p-4 md:p-10">
           <div className="flex flex-col gap-5">
-            <div className="flex flex-col md:flex-row justify-between">
-              <div>
-                <div>
-                  <h1 className="text-4xl md:text-5xl">
-                    1000 Plus performance <br className="hidden md:block" />
-                    driven recipes for
-                    <span className="text-[#4b5942] ml-3">athletes.</span>
-                  </h1>
-                </div>
-                <div className="mt-6 md:mt-8">
-                  <p className="font-medium">
-                    Elevate your performance with precision nutrition.{" "}
-                    <br className="hidden md:block" />
-                    Our recipes are tailored for athletes who push{" "}
-                    <br className="hidden md:block" /> their limits and demand
-                    the best fuel for optimal results.
-                  </p>
-                </div>
-              </div>
-              <div className="bg-primary/90 rounded-md w-full h-full md:w-[500px] mt-6 md:mt-0 mx-auto space-y-2 p-2">
-                <div className="bg-[#637257] p-4 text-textWhite rounded-md space-y-3 text-xs md:text-sm">
-                  <div className="flex gap-2 items-center">
-                    <Target className="h-5" />
-                    <span>
-                      Get recipe suggestions according to your Training goals
-                    </span>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <Heart className="h-5" />
-                    <span>Save favourite recipes to your profile</span>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <NotebookPen className="h-5" />
-                    <span>Submit your own recipe</span>
-                  </div>
-                </div>
-                <div className="flex">
-                  <Link
-                    to="/profile"
-                    className="md:p-5 p-3 bg-background w-1/2 text-center md:text-sm text-xs rounded-md cursor-pointer hover:bg-background/90 transition-colors"
-                  >
-                    Get full access
-                  </Link>
-                  <Link
-                    to="/s"
-                    className="w-1/2 text-center md:p-4 p-3 text-textWhite md:text-sm text-xs cursor-pointer"
-                  >
-                    Subscribe
-                  </Link>
-                </div>
-              </div>
-            </div>
-
+            {renderHeader()}
             <div className="relative sort-dropdown flex gap-2 items-center">
               <div
                 className={`p-2 w-fit text-sm rounded-sm mt-4 bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer transition-colors ${
@@ -488,7 +499,7 @@ const Home = () => {
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6  min-h-[600px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {isLoading ? (
                 Array(6)
                   .fill(0)
