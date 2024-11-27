@@ -21,6 +21,7 @@ import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
 import MobileFilters from "../../components/MobileFilters";
 import { useAuth } from "../../context/AuthContext";
+// import { migrateSearchKeywords } from "../../lib/migrate";
 // import { migrateRecipes } from "../../lib/migrate";
 
 interface InitialRecipe {
@@ -51,6 +52,10 @@ const Home = () => {
   const [isForYou, setIsForYou] = useState(false);
   const { user } = useAuth();
   const [hasTrainingGoal, setHasTrainingGoal] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [_searchError, setSearchError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
 
   const isMounted = useRef(true);
 
@@ -244,44 +249,68 @@ const Home = () => {
   );
 
   const handleSearch = useCallback(
-    async (searchTerm: string) => {
-      setIsLoading(true);
-      setIsSearching(true);
-      try {
-        const searchResults = await searchRecipes(searchTerm);
-        const mappedResults = mapRecipes(searchResults);
-        setSearchResults(mappedResults);
-      } catch (error) {
-        console.error("Error searching recipes:", error);
-      } finally {
-        setIsLoading(false);
-        setIsSearching(false);
+    async (term: string) => {
+      if (term.length >= 3) {
+        setIsLoading(true);
+        setIsSearching(true);
+        setSearchError(null);
+        try {
+          const searchResults = await searchRecipes(term);
+          const mappedResults = mapRecipes(searchResults);
+          setSearchResults(mappedResults);
+          setSearchHistory((prev) =>
+            [term, ...prev.filter((item) => item !== term)].slice(0, 5)
+          );
+        } catch (error) {
+          console.error("Error searching recipes:", error);
+          setSearchError(
+            "An error occurred while searching. Please try again."
+          );
+        } finally {
+          setIsLoading(false);
+          setIsSearching(false);
+        }
       }
     },
     [mapRecipes]
   );
 
   const handleSearchInputChange = useCallback(
-    async (searchTerm: string) => {
-      if (searchTerm.length >= 4) {
+    async (term: string) => {
+      setSearchTerm(term);
+      if (term.length >= 3) {
         setIsSearching(true);
         setIsLoading(true);
+        setSearchError(null);
         try {
-          const searchResults = await searchRecipes(searchTerm);
+          const searchResults = await searchRecipes(term);
           const mappedResults = mapRecipes(searchResults);
           setSearchResults(mappedResults);
+          setSearchSuggestions(
+            searchResults
+              .map((recipe) => recipe.name)
+              .filter((name) => name.toLowerCase().includes(term.toLowerCase()))
+              .slice(0, 5)
+          );
         } catch (error) {
           console.error("Error searching recipes:", error);
+          setSearchError(
+            "An error occurred while searching. Please try again."
+          );
         } finally {
           setIsLoading(false);
           setIsSearching(false);
         }
       } else {
+        // When search term is cleared, restore original recipes
         setSearchResults([]);
+        setSearchSuggestions([]);
         setIsSearching(false);
+        // Restore original recipes based on whether it's "For You" or not
+        setFilteredRecipes(isForYou ? forYouRecipes : initialRecipes);
       }
     },
-    [mapRecipes]
+    [mapRecipes, isForYou, forYouRecipes, initialRecipes]
   );
 
   const handleForYouToggle = useCallback(async () => {
@@ -355,9 +384,20 @@ const Home = () => {
         onClearFilters={clearFilters}
         onSearch={handleSearch}
         onSearchInputChange={handleSearchInputChange}
+        searchTerm={searchTerm}
+        searchSuggestions={searchSuggestions}
+        searchHistory={searchHistory}
       />
     ),
-    [filters, handleFilterChange, isMobileFilterOpen, clearFilters]
+    [
+      filters,
+      handleFilterChange,
+      isMobileFilterOpen,
+      clearFilters,
+      searchTerm,
+      searchSuggestions,
+      searchHistory,
+    ]
   );
 
   return (
@@ -369,6 +409,9 @@ const Home = () => {
           onSearch={handleSearch}
           onSearchInputChange={handleSearchInputChange}
           onClearFilters={clearFilters}
+          searchTerm={searchTerm}
+          searchSuggestions={searchSuggestions}
+          searchHistory={searchHistory}
         />
       </div>
       <div className="text-textBlack md:ml-[317px] xl:ml-[280px] 2xl:ml-[317px] mb-10">
@@ -492,6 +535,7 @@ const Home = () => {
                 </div>
               )}
               {renderMobileFilters()}
+              {/* <button onClick={() => migrateSearchKeywords()}>migrate</button> */}
             </div>
             <div className="flex gap-4 items-center mt-2">
               <h2 className="text-xl">
@@ -530,7 +574,12 @@ const Home = () => {
               ) : isSearching || searchResults.length > 0 ? (
                 searchResults.length > 0 ? (
                   searchResults.map((recipe) => (
-                    <RecipeCard key={recipe.id} {...recipe} isLoading={false} />
+                    <RecipeCard
+                      key={recipe.id}
+                      {...recipe}
+                      isLoading={false}
+                      searchTerm={searchTerm}
+                    />
                   ))
                 ) : (
                   <div className="col-span-full text-center">
@@ -539,7 +588,12 @@ const Home = () => {
                 )
               ) : (
                 filteredRecipes.map((recipe) => (
-                  <RecipeCard key={recipe.id} {...recipe} isLoading={false} />
+                  <RecipeCard
+                    key={recipe.id}
+                    {...recipe}
+                    isLoading={false}
+                    searchTerm={searchTerm}
+                  />
                 ))
               )}
             </div>

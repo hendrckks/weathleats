@@ -1,5 +1,5 @@
 import { Search } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface SidebarProps {
@@ -11,6 +11,9 @@ interface SidebarProps {
   onSearch: (searchTerm: string) => void;
   onSearchInputChange: (searchTerm: string) => void;
   onClearFilters: () => void;
+  searchTerm: string;
+  searchSuggestions: string[];
+  searchHistory: string[];
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -18,33 +21,31 @@ const Sidebar: React.FC<SidebarProps> = ({
   onFilterChange,
   onSearch,
   onSearchInputChange,
+  searchTerm,
+  searchSuggestions,
+  searchHistory,
 }) => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const navigate = useNavigate();
 
   const handleSearch = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      onSearch(searchTerm);
-      navigate("/");
+      if (searchTerm.length >= 3) {
+        onSearch(searchTerm);
+        navigate("/");
+      }
     },
     [searchTerm, onSearch, navigate]
   );
 
-  const debouncedSearchInputChange = useCallback(
-    debounce((term: string) => {
-      if (term.length >= 4) {
-        onSearchInputChange(term);
-      } else if (term.length === 0) {
-        onSearchInputChange(""); // Clear search results when input is empty
-      }
-    }, 300),
+  const handleSearchInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const term = e.target.value;
+      onSearchInputChange(term);
+    },
     [onSearchInputChange]
   );
-
-  useEffect(() => {
-    debouncedSearchInputChange(searchTerm);
-  }, [searchTerm, debouncedSearchInputChange]);
 
   return (
     <div className="fixed left-0 top-0 flex h-[100vh] w-72 flex-col bg-background border-r border-r-primary/50 p-6 space-y-6">
@@ -58,9 +59,58 @@ const Sidebar: React.FC<SidebarProps> = ({
             placeholder="Browse all recipes"
             className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none placeholder:text-sm focus:ring-2 focus:ring-primary"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearchInputChange}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
           />
         </form>
+        {isSearchFocused &&
+          (searchSuggestions.length > 0 || searchHistory.length > 0) && (
+            <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-[350px] overflow-auto">
+              {searchSuggestions.length > 0 && (
+                <div>
+                  <h3 className="px-4 py-2 text-sm font-medium text-textBlack underline">
+                    Suggestions
+                  </h3>
+                  <ul>
+                    {searchSuggestions.map((suggestion, index) => (
+                      <li
+                        key={`suggestion-${index}`}
+                        className="px-4 py-2 hover:bg-gray-100 text-sm text-gray-600 cursor-pointer"
+                        onClick={() => {
+                          onSearchInputChange(suggestion);
+                          onSearch(suggestion);
+                        }}
+                      >
+                        {suggestion}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {searchHistory.length > 0 && (
+                <div>
+                  <h3 className="px-4 py-2 text-sm font-medium text-textBlack underline">
+                    Recent Searches
+                  </h3>
+                  <ul>
+                    {searchHistory.map((historyItem, index) => (
+                      <li
+                        key={`history-${index}`}
+                        className="px-4 py-2 hover:bg-gray-100 text-sm text-gray-600 cursor-pointer"
+                        onClick={() => {
+                          onSearchInputChange(historyItem);
+                          onSearch(historyItem);
+                        }}
+                      >
+                        {historyItem}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
       </div>
 
       {/* Types Section */}
@@ -134,19 +184,5 @@ const Sidebar: React.FC<SidebarProps> = ({
     </div>
   );
 };
-
-// Debounce function
-function debounce<F extends (...args: any[]) => any>(func: F, wait: number) {
-  let timeout: ReturnType<typeof setTimeout> | null = null;
-
-  return function (this: any, ...args: Parameters<F>) {
-    const context = this;
-
-    if (timeout !== null) {
-      clearTimeout(timeout);
-    }
-    timeout = setTimeout(() => func.apply(context, args), wait);
-  };
-}
 
 export default Sidebar;

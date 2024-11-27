@@ -6,6 +6,7 @@ import { toast } from "../hooks/useToast";
 import { useState, useCallback } from "react";
 import { useFirebaseCache } from "../lib/cache/cacheUtils";
 import { fetchRecipeById } from "../lib/firebase/firestore";
+import HighlightedText from "./HighlightedTex";
 
 interface RecipeCardProps {
   name: string;
@@ -14,6 +15,7 @@ interface RecipeCardProps {
   imageUrl: string;
   id: string;
   isLoading?: boolean;
+  searchTerm?: string;
 }
 
 const RecipeCard: React.FC<RecipeCardProps> = ({
@@ -23,6 +25,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   imageUrl,
   id,
   isLoading = false,
+  searchTerm = "",
 }) => {
   const { user } = useAuth();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
@@ -173,6 +176,9 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
         >
           {name.charAt(0).toUpperCase() + name.slice(1)}
         </motion.span>
+        <h3 className="font-semibold hidden text-lg mb-2">
+          <HighlightedText text={name} highlight={searchTerm} />
+        </h3>
         <button
           className="absolute top-4 right-6 bg-transparent rounded-full transition-all duration-300 ease-in-out transform hover:scale-105"
           onClick={handleLikeClick}

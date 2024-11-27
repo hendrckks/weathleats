@@ -13,6 +13,9 @@ interface MobileFiltersProps {
   onClearFilters: () => void;
   onSearch: (searchTerm: string) => void;
   onSearchInputChange: (searchTerm: string) => void;
+  searchTerm: string;
+  searchSuggestions: string[];
+  searchHistory: string[];
 }
 
 const MobileFilters: React.FC<MobileFiltersProps> = ({
@@ -23,9 +26,12 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
   onClearFilters,
   onSearch,
   onSearchInputChange,
+  searchTerm,
+  searchSuggestions,
+  searchHistory,
 }) => {
   const drawerRef = useRef<HTMLDivElement | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -49,25 +55,30 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
   const handleSearch = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      onSearch(searchTerm);
+      if (searchTerm.length >= 3) {
+        onSearch(searchTerm);
+        setIsMobileFilterOpen(false); // Close drawer after search
+      }
     },
-    [searchTerm, onSearch]
+    [searchTerm, onSearch, setIsMobileFilterOpen]
   );
 
-  const debouncedSearchInputChange = useCallback(
-    debounce((term: string) => {
-      if (term.length >= 4) {
-        onSearchInputChange(term);
-      } else if (term.length === 0) {
-        onSearchInputChange(""); // Clear search results when input is empty
-      }
-    }, 300),
+  const handleSearchInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const term = e.target.value;
+      onSearchInputChange(term);
+    },
     [onSearchInputChange]
   );
 
-  useEffect(() => {
-    debouncedSearchInputChange(searchTerm);
-  }, [searchTerm, debouncedSearchInputChange]);
+  const handleSearchSelect = useCallback(
+    (selectedTerm: string) => {
+      onSearchInputChange(selectedTerm);
+      onSearch(selectedTerm);
+      setIsMobileFilterOpen(false); // Close drawer after selecting suggestion/history
+    },
+    [onSearchInputChange, onSearch, setIsMobileFilterOpen]
+  );
 
   return (
     <div className="md:hidden">
@@ -108,11 +119,55 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
               placeholder="Browse all recipes"
               className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none placeholder:text-sm focus:ring-2 focus:ring-primary"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchInputChange}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
             />
           </form>
+          {isSearchFocused &&
+            (searchSuggestions.length > 0 || searchHistory.length > 0) && (
+              <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg">
+                {searchSuggestions.length > 0 && (
+                  <div>
+                    <h3 className="px-4 py-2 text-sm font-medium text-gray-500 underline">
+                      Suggestions
+                    </h3>
+                    <ul>
+                      {searchSuggestions.map((suggestion, index) => (
+                        <li
+                          key={`suggestion-${index}`}
+                          className="px-4 py-2 hover:bg-gray-100 text-sm text-gray-600 cursor-pointer"
+                          onClick={() => handleSearchSelect(suggestion)}
+                        >
+                          {suggestion}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {searchHistory.length > 0 && (
+                  <div>
+                    <h3 className="px-4 py-2 text-sm font-medium text-textBlack underline">
+                      Recent Searches
+                    </h3>
+                    <ul>
+                      {searchHistory.map((historyItem, index) => (
+                        <li
+                          key={`history-${index}`}
+                          className="px-4 py-2 hover:bg-gray-100 text-sm text-gray-600 cursor-pointer"
+                          onClick={() => handleSearchSelect(historyItem)}
+                        >
+                          {historyItem}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
         </div>
 
+        {/* Rest of the component remains the same */}
         <div className="space-y-6">
           <div>
             <h3 className="font-medium mb-3">Types</h3>
@@ -163,18 +218,17 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
   );
 };
 
-// Debounce function
-function debounce<F extends (...args: any[]) => any>(func: F, wait: number) {
-  let timeout: ReturnType<typeof setTimeout> | null = null;
-
-  return function (this: any, ...args: Parameters<F>) {
-    const context = this;
-
-    if (timeout !== null) {
-      clearTimeout(timeout);
-    }
-    timeout = setTimeout(() => func.apply(context, args), wait);
-  };
-}
-
 export default MobileFilters;
+
+// function debounce<F extends (...args: any[]) => any>(func: F, wait: number) {
+//   let timeout: ReturnType<typeof setTimeout> | null = null;
+
+//   return function (this: any, ...args: Parameters<F>) {
+//     const context = this;
+
+//     if (timeout !== null) {
+//       clearTimeout(timeout);
+//     }
+//     timeout = setTimeout(() => func.apply(context, args), wait);
+//   };
+// }

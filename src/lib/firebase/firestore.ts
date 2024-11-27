@@ -20,7 +20,12 @@ import {
   deleteObject,
 } from "firebase/storage";
 import { db, storage } from "../../lib/firebase/clientApp";
-import { Recipe, NewRecipeData, recipeSchema, TrainingGoal } from "../../types/firestore";
+import {
+  Recipe,
+  NewRecipeData,
+  recipeSchema,
+  TrainingGoal,
+} from "../../types/firestore";
 import { z } from "zod";
 
 // Helper function to format recipe name for use as ID
@@ -183,7 +188,7 @@ export const fetchUserData = async (userId: string) => {
 export const fetchForYouRecipes = async (userId: string): Promise<Recipe[]> => {
   const userRef = doc(db, "users", userId);
   const userDoc = await getDoc(userRef);
-  
+
   if (!userDoc.exists()) {
     throw new Error("User not found");
   }
@@ -202,7 +207,7 @@ export const fetchForYouRecipes = async (userId: string): Promise<Recipe[]> => {
   );
 
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => {
+  return querySnapshot.docs.map((doc) => {
     const data = doc.data();
     return {
       id: doc.id,
@@ -234,7 +239,6 @@ export const fetchForYouRecipes = async (userId: string): Promise<Recipe[]> => {
     } as Recipe;
   });
 };
-
 
 export const fetchInitial30Recipes = async () => {
   try {
@@ -361,7 +365,6 @@ export const generateSearchKeywords = (name: string): string[] => {
   // Add individual words
   words.forEach((word) => {
     if (word.length >= 2) {
-      // Only add words with 2 or more characters
       keywords.add(word);
     }
   });
@@ -379,13 +382,11 @@ export const generateSearchKeywords = (name: string): string[] => {
   // Add complete name
   keywords.add(normalizedName);
 
-  // Add partial matches (substrings of 3 or more characters)
+  // Add partial matches (substrings of 2 or more characters)
   words.forEach((word) => {
-    if (word.length >= 3) {
-      for (let i = 0; i < word.length - 2; i++) {
-        for (let j = i + 3; j <= word.length; j++) {
-          keywords.add(word.slice(i, j));
-        }
+    for (let i = 0; i < word.length - 1; i++) {
+      for (let j = i + 2; j <= word.length; j++) {
+        keywords.add(word.slice(i, j));
       }
     }
   });
@@ -404,7 +405,10 @@ export const getTotalRecipesCount = async (): Promise<number> => {
   }
 };
 
-export const fetchPaginatedRecipes = async (_page: number, recipesPerPage: number = 30): Promise<Recipe[]> => {
+export const fetchPaginatedRecipes = async (
+  _page: number,
+  recipesPerPage: number = 30
+): Promise<Recipe[]> => {
   const recipesRef = collection(db, "recipes");
   const q = query(
     recipesRef,
@@ -413,7 +417,7 @@ export const fetchPaginatedRecipes = async (_page: number, recipesPerPage: numbe
   );
 
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => {
+  return querySnapshot.docs.map((doc) => {
     const data = doc.data();
     return {
       id: doc.id,
@@ -423,7 +427,7 @@ export const fetchPaginatedRecipes = async (_page: number, recipesPerPage: numbe
       searchKeywords: data.searchKeywords || [],
       description: data.description,
       type: data.type || [],
-      trainingGoals: data.trainingGoals as TrainingGoal[] || [],
+      trainingGoals: (data.trainingGoals as TrainingGoal[]) || [],
       imageUrls: data.imageUrls || [],
       mealBenefits: data.mealBenefits || [],
       nutritionFacts: data.nutritionFacts || {},
@@ -445,7 +449,6 @@ export const fetchPaginatedRecipes = async (_page: number, recipesPerPage: numbe
     } as Recipe;
   });
 };
-
 
 export const fetchRecipeById = async (id: string): Promise<Recipe | null> => {
   try {
@@ -562,7 +565,7 @@ export const addRecipe = async (
     const imageUrls =
       images.length > 0 ? await uploadRecipeImages(recipeId, images) : [];
 
-    const searchKeywords = generateSearchKeywords(recipeData.name);
+    const searchKeywords = generateSearchKeywords(validatedData.name);
 
     const newRecipe: Recipe = {
       ...validatedData,
@@ -613,6 +616,11 @@ export const updateRecipe = async (
       // Delete specified images
       if (deletedImageUrls?.length) {
         await deleteRecipeImages(deletedImageUrls);
+      }
+      const existingRecipe = await getDoc(doc(db, "recipes", currentId));
+      if (existingRecipe.exists()) {
+        const existingName = existingRecipe.data().name;
+        updateData.searchKeywords = generateSearchKeywords(existingName);
       }
 
       // Upload new images
