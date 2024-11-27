@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
-import { X } from "lucide-react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { X, Search } from "lucide-react";
 import DietTag from "./DieTag";
+
 interface MobileFiltersProps {
   filters: {
     types: string[];
@@ -10,6 +11,8 @@ interface MobileFiltersProps {
   isMobileFilterOpen: boolean;
   setIsMobileFilterOpen: (isOpen: boolean) => void;
   onClearFilters: () => void;
+  onSearch: (searchTerm: string) => void;
+  onSearchInputChange: (searchTerm: string) => void;
 }
 
 const MobileFilters: React.FC<MobileFiltersProps> = ({
@@ -17,8 +20,12 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
   onFilterChange,
   isMobileFilterOpen,
   setIsMobileFilterOpen,
+  onClearFilters,
+  onSearch,
+  onSearchInputChange,
 }) => {
   const drawerRef = useRef<HTMLDivElement | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -39,13 +46,36 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
     };
   }, [isMobileFilterOpen, setIsMobileFilterOpen]);
 
+  const handleSearch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      onSearch(searchTerm);
+    },
+    [searchTerm, onSearch]
+  );
+
+  const debouncedSearchInputChange = useCallback(
+    debounce((term: string) => {
+      if (term.length >= 4) {
+        onSearchInputChange(term);
+      } else if (term.length === 0) {
+        onSearchInputChange(""); // Clear search results when input is empty
+      }
+    }, 300),
+    [onSearchInputChange]
+  );
+
+  useEffect(() => {
+    debouncedSearchInputChange(searchTerm);
+  }, [searchTerm, debouncedSearchInputChange]);
+
   return (
     <div className="md:hidden">
       <button
         onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
-        className="flex items-center gap-2 mt-4 p-2 bg-primary/20 text-sm text-textBlack rounded-sm "
+        className="flex items-center gap-2 mt-4 p-2 bg-primary/20 text-sm text-textBlack rounded-sm"
       >
-        {isMobileFilterOpen ? "Hide Filters" : "Show Filters"}
+        {isMobileFilterOpen ? "Hide Filters" : "Search / Filter"}
       </button>
 
       {/* Overlay */}
@@ -66,6 +96,21 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
           >
             <X className="h-5 w-5" />
           </button>
+        </div>
+
+        {/* Search Section */}
+        <div className="space-y-2 mb-6">
+          <h3 className="font-medium mb-3">Search</h3>
+          <form onSubmit={handleSearch} className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <input
+              type="text"
+              placeholder="Browse all recipes"
+              className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none placeholder:text-sm focus:ring-2 focus:ring-primary"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </form>
         </div>
 
         <div className="space-y-6">
@@ -106,9 +151,30 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
             ))}
           </div>
         </div>
+
+        <button
+          onClick={onClearFilters}
+          className="mt-6 w-full py-2 px-4 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+        >
+          Clear Filters
+        </button>
       </div>
     </div>
   );
 };
+
+// Debounce function
+function debounce<F extends (...args: any[]) => any>(func: F, wait: number) {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+
+  return function (this: any, ...args: Parameters<F>) {
+    const context = this;
+
+    if (timeout !== null) {
+      clearTimeout(timeout);
+    }
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+}
 
 export default MobileFilters;

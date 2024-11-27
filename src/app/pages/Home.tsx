@@ -33,8 +33,6 @@ interface InitialRecipe {
   category: string[];
 }
 
-
-
 const Home = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -277,6 +275,8 @@ const Home = () => {
         isMobileFilterOpen={isMobileFilterOpen}
         setIsMobileFilterOpen={setIsMobileFilterOpen}
         onClearFilters={clearFilters}
+        onSearch={handleSearch}
+        onSearchInputChange={handleSearchInputChange}
       />
     ),
     [filters, handleFilterChange, isMobileFilterOpen, clearFilters]
@@ -291,7 +291,6 @@ const Home = () => {
           onSearch={handleSearch}
           onSearchInputChange={handleSearchInputChange}
           onClearFilters={clearFilters}
-
         />
       </div>
       <div className="text-textBlack md:ml-[317px] xl:ml-[280px] 2xl:ml-[317px] mb-10">
