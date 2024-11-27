@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
   Heart,
@@ -60,8 +60,8 @@ const Home = () => {
     };
   }, []);
   // Prevent multiple renders of the header section
-  const renderHeader = useCallback(() => {
-    return (
+  const headerContent = useMemo(
+    () => (
       <div className="flex flex-col md:flex-row justify-between">
         <div>
           <h1 className="text-4xl md:text-5xl">
@@ -112,8 +112,9 @@ const Home = () => {
           </div>
         </div>
       </div>
-    );
-  }, []);
+    ),
+    []
+  ); // Empty dependency array since content is static
 
   const [filters, setFilters] = useState({
     types: [] as string[],
@@ -134,9 +135,23 @@ const Home = () => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
+
+    // Initial check
     checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+
+    // Add debounced resize listener
+    let timeoutId: NodeJS.Timeout;
+    const debouncedCheck = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(checkMobile, 100);
+    };
+
+    window.addEventListener("resize", debouncedCheck);
+
+    return () => {
+      window.removeEventListener("resize", debouncedCheck);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   useEffect(() => {
@@ -359,7 +374,7 @@ const Home = () => {
       <div className="text-textBlack md:ml-[317px] xl:ml-[280px] 2xl:ml-[317px] mb-10">
         <div className="p-4 md:p-10">
           <div className="flex flex-col gap-5">
-            {renderHeader()}
+            {headerContent}
             <div className="relative sort-dropdown flex gap-2 items-center">
               <div
                 className={`p-2 w-fit text-sm rounded-sm mt-4 bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer transition-colors ${
@@ -478,7 +493,6 @@ const Home = () => {
               )}
               {renderMobileFilters()}
             </div>
-
             <div className="flex gap-4 items-center mt-2">
               <h2 className="text-xl">
                 {isForYou ? "For You Recipes" : "Suggested Recipes"}
@@ -498,7 +512,6 @@ const Home = () => {
                 </div>
               )}
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {isLoading ? (
                 Array(6)
