@@ -476,7 +476,7 @@ const Home = () => {
                 <div className="relative">
                   <button
                     onClick={handleForYouToggle}
-                    className={`p-2 w-fit text-sm rounded-sm bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer transition-colors ${
+                    className={`p-2 w-fit text-sm rounded-sm bg-primary/20 text-textBlack flex items-center cursor-pointer transition-colors ${
                       isForYou
                         ? "bg-gray-200 text-textBlack"
                         : "bg-primary text-textBlack"
