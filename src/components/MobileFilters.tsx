@@ -16,6 +16,7 @@ interface MobileFiltersProps {
   searchTerm: string;
   searchSuggestions: string[];
   searchHistory: string[];
+  onSearchClear: () => void;
 }
 
 const MobileFilters: React.FC<MobileFiltersProps> = ({
@@ -29,9 +30,15 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
   searchTerm,
   searchSuggestions,
   searchHistory,
+  onSearchClear,
 }) => {
   const drawerRef = useRef<HTMLDivElement | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+
+  useEffect(() => {
+    setLocalSearchTerm(searchTerm);
+  }, [searchTerm]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -55,30 +62,46 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
   const handleSearch = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      if (searchTerm.length >= 3) {
-        onSearch(searchTerm);
-        setIsMobileFilterOpen(false); // Close drawer after search
+      if (localSearchTerm.length >= 3) {
+        onSearch(localSearchTerm);
+        setIsMobileFilterOpen(false);
       }
     },
-    [searchTerm, onSearch, setIsMobileFilterOpen]
+    [localSearchTerm, onSearch, setIsMobileFilterOpen]
   );
 
   const handleSearchInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const term = e.target.value;
+      setLocalSearchTerm(term);
       onSearchInputChange(term);
     },
     [onSearchInputChange]
   );
 
+  const handleClearSearch = useCallback(() => {
+    setLocalSearchTerm("");
+    onSearchClear();
+  }, [onSearchClear]);
+
   const handleSearchSelect = useCallback(
     (selectedTerm: string) => {
+      setLocalSearchTerm(selectedTerm); // This line sets the input value
       onSearchInputChange(selectedTerm);
       onSearch(selectedTerm);
-      setIsMobileFilterOpen(false); // Close drawer after selecting suggestion/history
+      setIsMobileFilterOpen(false);
     },
     [onSearchInputChange, onSearch, setIsMobileFilterOpen]
   );
+
+  const handleFilterChange = (
+    filterType: "types" | "categories",
+    value: string
+  ) => {
+    if (searchTerm.length === 0) {
+      onFilterChange(filterType, value);
+    }
+  };
 
   return (
     <div className="md:hidden">
@@ -117,12 +140,21 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
             <input
               type="text"
               placeholder="Browse all recipes"
-              className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none placeholder:text-sm focus:ring-2 focus:ring-primary"
-              value={searchTerm}
+              className="w-[95%] pl-10 pr-4 py-2 rounded-md border overflow-auto border-gray-300 focus:outline-none placeholder:text-sm focus:ring-2 focus:ring-primary"
+              value={localSearchTerm}
               onChange={handleSearchInputChange}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
             />
+            {localSearchTerm && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              >
+                <X className="h-6 w-6 relative left-6 text-textBlack" />
+              </button>
+            )}
           </form>
           {isSearchFocused &&
             (searchSuggestions.length > 0 || searchHistory.length > 0) && (
@@ -179,8 +211,9 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
                 <input
                   type="checkbox"
                   checked={filters.types.includes(type)}
-                  onChange={() => onFilterChange("types", type)}
-                  className="rounded border-gray-300 text-primary focus:ring-primary"
+                  onChange={() => handleFilterChange("types", type)}
+                  disabled={searchTerm.length > 0}
+                  className="rounded border-gray-300 text-primary focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <span>{type}</span>
                 <DietTag type={type} />
@@ -197,9 +230,10 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
               >
                 <input
                   type="checkbox"
-                  checked={filters.categories.includes(category)}
-                  onChange={() => onFilterChange("categories", category)}
-                  className="rounded border-gray-300 text-primary focus:ring-primary"
+                  checked={filters.types.includes(category)}
+                  onChange={() => handleFilterChange("types", category)}
+                  disabled={searchTerm.length > 0}
+                  className="rounded border-gray-300 text-primary focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <span>{category}</span>
               </label>

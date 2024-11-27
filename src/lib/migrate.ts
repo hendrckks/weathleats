@@ -1,3 +1,6 @@
+//migrate training goals
+
+
 // import { db } from "./firebase/clientApp";
 // import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
 // import { Recipe, TrainingGoal } from "../types/firestore";
@@ -97,6 +100,11 @@
 
 // // Run the migration
 // migrateRecipes().catch(console.error);
+
+
+
+
+//migrate search key words
 
 import { db } from "../lib/firebase/clientApp";
 import { collection, getDocs, updateDoc, doc } from "firebase/firestore";

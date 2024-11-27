@@ -374,6 +374,15 @@ const Home = () => {
     setFilteredRecipes(isForYou ? forYouRecipes : initialRecipes);
   }, [isForYou, forYouRecipes, initialRecipes]);
 
+  const handleSearchClear = useCallback(() => {
+    setSearchTerm("");
+    setSearchResults([]);
+    setSearchSuggestions([]);
+    setIsSearching(false);
+    // Restore original recipes based on whether it's "For You" or not
+    setFilteredRecipes(isForYou ? forYouRecipes : initialRecipes);
+  }, [isForYou, forYouRecipes, initialRecipes]);
+
   const renderMobileFilters = useCallback(
     () => (
       <MobileFilters
@@ -387,6 +396,7 @@ const Home = () => {
         searchTerm={searchTerm}
         searchSuggestions={searchSuggestions}
         searchHistory={searchHistory}
+        onSearchClear={handleSearchClear}
       />
     ),
     [
@@ -397,6 +407,7 @@ const Home = () => {
       searchTerm,
       searchSuggestions,
       searchHistory,
+      handleSearchClear,
     ]
   );
 
