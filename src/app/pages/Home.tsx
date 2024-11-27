@@ -11,13 +11,16 @@ import Sidebar from "../../components/navigation/Sidebar";
 import RecipeCard from "../../components/RecipeCard";
 import { Link } from "react-router-dom";
 import {
+  fetchForYouRecipes,
   fetchPaginatedRecipes,
+  fetchUserData,
   // getTotalRecipesCount,
   searchRecipes,
 } from "../../lib/firebase/firestore";
 import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
 import MobileFilters from "../../components/MobileFilters";
+import { useAuth } from "../../context/AuthContext";
 // import { migrateRecipes } from "../../lib/migrate";
 
 interface InitialRecipe {
@@ -44,6 +47,19 @@ const Home = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isForYou, setIsForYou] = useState(false);
+  const { user } = useAuth();
+  const [hasTrainingGoal, setHasTrainingGoal] = useState(false);
+
+  useEffect(() => {
+    const checkUserTrainingGoal = async () => {
+      if (user) {
+        const userData = await fetchUserData(user.uid);
+        setHasTrainingGoal(userData?.trainingGoals?.length > 0 || false);
+      }
+    };
+    checkUserTrainingGoal();
+  }, [user]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -200,6 +216,33 @@ const Home = () => {
     }
   }, []);
 
+  const handleForYouToggle = async () => {
+    setIsForYou(!isForYou);
+    if (!isForYou && user) {
+      setIsLoading(true);
+      try {
+        const forYouRecipes = await fetchForYouRecipes(user.uid);
+        const mappedRecipes: InitialRecipe[] = forYouRecipes.map((recipe) => ({
+          id: recipe.id,
+          name: recipe.name,
+          calories: recipe.nutritionFacts?.calories,
+          prepTime: recipe.prepTime?.toString() || "N/A",
+          imageUrl: recipe.imageUrls?.[0] || "",
+          types: recipe.type || [],
+          category: recipe.category || [],
+        }));
+        setFilteredRecipes(mappedRecipes);
+      } catch (error) {
+        console.error("Error fetching 'For You' recipes:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Reset to all recipes
+      setFilteredRecipes(initialRecipes);
+    }
+  };
+
   const handleSort = (option: string) => {
     setSortOption(option);
     setIsDropdownOpen(false);
@@ -277,7 +320,9 @@ const Home = () => {
                 <div className="bg-[#637257] p-4 text-textWhite rounded-md space-y-3 text-xs md:text-sm">
                   <div className="flex gap-2 items-center">
                     <Target className="h-5" />
-                    <span>Get recipe suggestions according to your goals</span>
+                    <span>
+                      Get recipe suggestions according to your Training goals
+                    </span>
                   </div>
                   <div className="flex gap-2 items-center">
                     <Heart className="h-5" />
@@ -296,7 +341,7 @@ const Home = () => {
                     Get full access
                   </Link>
                   <Link
-                    to="/"
+                    to="/s"
                     className="w-1/2 text-center md:p-4 p-3 text-textWhite md:text-sm text-xs cursor-pointer"
                   >
                     Subscribe
@@ -424,13 +469,26 @@ const Home = () => {
               {renderMobileFilters()}
             </div>
 
-            <h2 className="text-xl mt-2">
-              {isSearching || searchResults.length > 0
-                ? "Search Results"
-                : filters.types.length > 0 || filters.categories.length > 0
-                ? "Filtered Recipes"
-                : "Suggested Recipes"}
-            </h2>
+            <div className="flex gap-4 items-center mt-2">
+              <h2 className="text-xl">
+                {isForYou ? "For You Recipes" : "Suggested Recipes"}
+              </h2>
+              {hasTrainingGoal && (
+                <div className="relative">
+                  <button
+                    onClick={handleForYouToggle}
+                    className={`p-2 w-fit text-sm rounded-sm bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer transition-colors ${
+                      isForYou
+                        ? "bg-gray-200 text-textBlack"
+                        : "bg-primary text-textBlack"
+                    }`}
+                  >
+                    {isForYou ? "All Recipes" : "For You"}
+                  </button>
+                  {/* <button onClick={() => migrateRecipes()}>migrste</button> */}
+                </div>
+              )}
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {isLoading ? (

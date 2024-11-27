@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { addRecipe } from "../../lib/firebase/firestore";
-import type {
+import {
   NewRecipeData,
   Ingredient,
   Instruction,
   NutritionFacts,
+  TrainingGoal,
 } from "../../types/firestore";
 
 // Updated predefined options
@@ -38,6 +39,7 @@ const AddRecipe = () => {
   const [mealBenefits, setMealBenefits] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [types, setTypes] = useState<string[]>([]);
+  const [trainingGoals, setTrainingGoals] = useState<TrainingGoal[]>([]);
 
   // Rest of the states remain the same
   const [nutritionFacts, setNutritionFacts] = useState<NutritionFacts>({
@@ -175,6 +177,12 @@ const AddRecipe = () => {
     setTimeout(() => setSuccess(false), 3000);
   };
 
+  const handleTrainingGoalChange = (goal: TrainingGoal) => {
+    setTrainingGoals((prev) =>
+      prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal]
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -206,6 +214,7 @@ const AddRecipe = () => {
         instructions: instructions.filter((inst) => inst.description.trim()),
         category: categories.length > 0 ? categories : undefined,
         type: types.length > 0 ? types : undefined,
+        trainingGoals: trainingGoals,
       };
 
       await addRecipe(recipeData, images);
@@ -302,6 +311,28 @@ const AddRecipe = () => {
             className="w-full p-3 border-2 border-primary rounded-md"
             placeholder="e.g. High Protein | Low Carb | Weight Loss"
           />
+        </div>
+
+        <div className="mb-4">
+          <label className="block mb-2 text-textGrey font-medium">
+            Training Goals
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {Object.values(TrainingGoal).map((goal) => (
+              <button
+                key={goal}
+                type="button"
+                onClick={() => handleTrainingGoalChange(goal)}
+                className={`px-3 py-1 rounded ${
+                  trainingGoals.includes(goal)
+                    ? "bg-gradient-to-b from-[#637257] to-[#4b5942] text-white"
+                    : "bg-gray-200 text-textBlack"
+                }`}
+              >
+                {goal}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Categories */}

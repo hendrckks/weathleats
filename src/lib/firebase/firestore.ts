@@ -11,7 +11,7 @@ import {
   orderBy,
   limit,
   where,
-  startAfter,
+  // startAfter,
 } from "firebase/firestore";
 import {
   ref,
@@ -20,7 +20,7 @@ import {
   deleteObject,
 } from "firebase/storage";
 import { db, storage } from "../../lib/firebase/clientApp";
-import { Recipe, NewRecipeData, recipeSchema } from "../../types/firestore";
+import { Recipe, NewRecipeData, recipeSchema, TrainingGoal } from "../../types/firestore";
 import { z } from "zod";
 
 // Helper function to format recipe name for use as ID
@@ -165,6 +165,76 @@ export const fetchRecipesByIds = async (ids: string[]): Promise<Recipe[]> => {
     throw error;
   }
 };
+
+export const updateUserTrainingGoals = async (
+  userId: string,
+  goals: TrainingGoal[]
+) => {
+  const userRef = doc(db, "users", userId);
+  await setDoc(userRef, { trainingGoals: goals }, { merge: true });
+};
+
+export const fetchUserData = async (userId: string) => {
+  const userRef = doc(db, "users", userId);
+  const userDoc = await getDoc(userRef);
+  return userDoc.exists() ? userDoc.data() : null;
+};
+
+export const fetchForYouRecipes = async (userId: string): Promise<Recipe[]> => {
+  const userRef = doc(db, "users", userId);
+  const userDoc = await getDoc(userRef);
+  
+  if (!userDoc.exists()) {
+    throw new Error("User not found");
+  }
+
+  const userGoals = userDoc.data().trainingGoals || [];
+
+  if (userGoals.length === 0) {
+    return fetchPaginatedRecipes(1, 30); // Return default recipes if no goals set
+  }
+
+  const recipesRef = collection(db, "recipes");
+  const q = query(
+    recipesRef,
+    where("trainingGoals", "array-contains-any", userGoals),
+    limit(30)
+  );
+
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      name: data.name,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      searchKeywords: data.searchKeywords,
+      description: data.description,
+      type: data.type,
+      trainingGoals: data.trainingGoals,
+      imageUrls: data.imageUrls,
+      mealBenefits: data.mealBenefits,
+      nutritionFacts: data.nutritionFacts,
+      instructions: data.instructions,
+      ingredients: data.ingredients,
+      category: data.category,
+      prepTime: data.prepTime,
+      cookTime: data.cookTime,
+      totalTime: data.totalTime,
+      servings: data.servings,
+      difficulty: data.difficulty,
+      cuisine: data.cuisine,
+      dietaryRestrictions: data.dietaryRestrictions,
+      calories: data.calories,
+      equipment: data.equipment,
+      notes: data.notes,
+      tags: data.tags,
+      sourceUrl: data.sourceUrl,
+    } as Recipe;
+  });
+};
+
 
 export const fetchInitial30Recipes = async () => {
   try {
@@ -334,46 +404,48 @@ export const getTotalRecipesCount = async (): Promise<number> => {
   }
 };
 
-export const fetchPaginatedRecipes = async (
-  page: number,
-  recipesPerPage: number = 30
-) => {
-  try {
-    const recipesRef = collection(db, "recipes");
-    const q = query(
-      recipesRef,
-      orderBy("createdAt", "desc"),
-      limit(recipesPerPage)
-    );
+export const fetchPaginatedRecipes = async (_page: number, recipesPerPage: number = 30): Promise<Recipe[]> => {
+  const recipesRef = collection(db, "recipes");
+  const q = query(
+    recipesRef,
+    orderBy("createdAt", "desc"),
+    limit(recipesPerPage)
+  );
 
-    // Get the snapshot of the first page
-    const querySnapshot = await getDocs(q);
-    const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
-
-    // If not the first page, use startAfter
-    if (page > 1) {
-      const nextQuery = query(
-        recipesRef,
-        orderBy("createdAt", "desc"),
-        startAfter(lastVisible),
-        limit(recipesPerPage)
-      );
-      const nextSnapshot = await getDocs(nextQuery);
-      return nextSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-    }
-
-    return querySnapshot.docs.map((doc) => ({
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
       id: doc.id,
-      ...doc.data(),
-    }));
-  } catch (error) {
-    console.error("Error fetching paginated recipes:", error);
-    throw error;
-  }
+      name: data.name,
+      createdAt: data.createdAt as Timestamp,
+      updatedAt: data.updatedAt as Timestamp,
+      searchKeywords: data.searchKeywords || [],
+      description: data.description,
+      type: data.type || [],
+      trainingGoals: data.trainingGoals as TrainingGoal[] || [],
+      imageUrls: data.imageUrls || [],
+      mealBenefits: data.mealBenefits || [],
+      nutritionFacts: data.nutritionFacts || {},
+      instructions: data.instructions || [],
+      ingredients: data.ingredients || [],
+      category: data.category || [],
+      prepTime: data.prepTime,
+      cookTime: data.cookTime,
+      totalTime: data.totalTime,
+      servings: data.servings,
+      difficulty: data.difficulty,
+      cuisine: data.cuisine,
+      dietaryRestrictions: data.dietaryRestrictions || [],
+      calories: data.calories,
+      equipment: data.equipment || [],
+      notes: data.notes,
+      tags: data.tags || [],
+      sourceUrl: data.sourceUrl,
+    } as Recipe;
+  });
 };
+
 
 export const fetchRecipeById = async (id: string): Promise<Recipe | null> => {
   try {

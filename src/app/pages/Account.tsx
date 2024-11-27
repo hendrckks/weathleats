@@ -4,8 +4,12 @@ import { useFavorites } from "../../context/FavouritesContext";
 import RecipeCard from "../../components/RecipeCard";
 import { signOut } from "../../lib/firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
-import { fetchRecipesByIds } from "../../lib/firebase/firestore";
-import { Recipe } from "../../types/firestore";
+import {
+  fetchRecipesByIds,
+  fetchUserData,
+  updateUserTrainingGoals,
+} from "../../lib/firebase/firestore";
+import { Recipe, TrainingGoal } from "../../types/firestore";
 import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
 import { Loader2, Heart, ChevronDown, X } from "lucide-react";
@@ -28,6 +32,30 @@ const Account: React.FC = () => {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   // const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [trainingGoals, setTrainingGoals] = useState<TrainingGoal[]>([]);
+
+  useEffect(() => {
+    const fetchUserDataAndGoals = async () => {
+      if (user) {
+        const userData = await fetchUserData(user.uid);
+        setTrainingGoals(userData?.trainingGoals || []);
+      }
+    };
+    fetchUserDataAndGoals();
+  }, [user]);
+
+  const handleTrainingGoalChange = async (goal: TrainingGoal) => {
+    let updatedGoals: TrainingGoal[];
+    if (trainingGoals.includes(goal)) {
+      updatedGoals = trainingGoals.filter((g) => g !== goal);
+    } else {
+      updatedGoals = [...trainingGoals, goal];
+    }
+    setTrainingGoals(updatedGoals);
+    if (user) {
+      await updateUserTrainingGoals(user.uid, updatedGoals);
+    }
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -286,7 +314,8 @@ const Account: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="p-4 md:p-8 lg:p-16 max-w-7xl mx-auto">
-        <div className="flex flex-col gap-8 md:gap-20 mx-1 mt-20">
+        <div className="flex flex-col gap-8 md:gap-12 mx-1 mt-20">
+          {/* Profile Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <h1 className="text-3xl md:text-5xl font-medium text-gray-800 mb-4 md:mb-0">
               Your Profile
@@ -322,52 +351,82 @@ const Account: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row justify-between">
-            {renderMobileFilters()}
-            <div className="hidden md:block space-y-6 mt-2">
-              <div className="space-y-2">
-                <h3 className="text-gray-600">Types</h3>
-                <div className="space-y-3 text-sm">
-                  {["Vegetarian", "Vegan", "Gluten Free"].map((type) => (
-                    <label key={type} className="flex items-center gap-2 mt-6">
-                      <input
-                        type="checkbox"
-                        className="rounded"
-                        checked={filters.types.includes(type)}
-                        onChange={() => handleFilterChange("types", type)}
-                      />
-                      <span>{type}</span>
-                      <DietTag type={type} />
-                    </label>
+          {/* Main Content */}
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Left Column: Training Goals and Filters */}
+            <div className="w-full lg:w-1/3 space-y-8">
+              {/* Training Goals */}
+              <div>
+                <h2 className="text-xl text-textBlack font-medium mb-4">
+                  Training Goals
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {Object.values(TrainingGoal).map((goal) => (
+                    <button
+                      key={goal}
+                      onClick={() => handleTrainingGoalChange(goal)}
+                      className={`px-3 py-1 rounded transition-colors text-sm ${
+                        trainingGoals.includes(goal)
+                          ? "bg-gradient-to-b from-[#637257] to-[#4b5942] text-white"
+                          : "bg-gray-200 text-textBlack"
+                      }`}
+                    >
+                      {goal}
+                    </button>
                   ))}
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <h3 className="text-gray-600">Category</h3>
-                <div className="text-sm space-y-3">
-                  {["Breakfast", "Lunch", "Dinner", "Dessert"].map(
-                    (category) => (
-                      <label key={category} className="flex items-center gap-2">
+              {/* Filters */}
+              {renderMobileFilters()}
+              <div className="space-y-6 md:block hidden text-textBlack">
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Types</h3>
+                  <div className="space-y-2 text-sm">
+                    {["Vegetarian", "Vegan", "Gluten Free"].map((type) => (
+                      <label key={type} className="flex items-center gap-2">
                         <input
                           type="checkbox"
                           className="rounded"
-                          checked={filters.categories.includes(category)}
-                          onChange={() =>
-                            handleFilterChange("categories", category)
-                          }
+                          checked={filters.types.includes(type)}
+                          onChange={() => handleFilterChange("types", type)}
                         />
-                        <span>{category}</span>
+                        <span>{type}</span>
+                        <DietTag type={type} />
                       </label>
-                    )
-                  )}
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Category</h3>
+                  <div className="space-y-2 text-sm">
+                    {["Breakfast", "Lunch", "Dinner", "Dessert"].map(
+                      (category) => (
+                        <label
+                          key={category}
+                          className="flex items-center gap-2"
+                        >
+                          <input
+                            type="checkbox"
+                            className="rounded"
+                            checked={filters.categories.includes(category)}
+                            onChange={() =>
+                              handleFilterChange("categories", category)
+                            }
+                          />
+                          <span>{category}</span>
+                        </label>
+                      )
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col flex-1 md:ml-10">
+            {/* Right Column: Favorite Recipes */}
+            <div className="w-full lg:w-2/3">
               <div className="flex justify-between items-center mb-6">
-                <p className="text-gray-600 md:text-base text-xs flex items-center">
+                <p className="text-gray-600 text-sm md:text-base flex items-center">
                   Showing
                   <span className="mx-2">
                     <Heart className="h-5 w-5 text-primary" />
@@ -380,10 +439,7 @@ const Account: React.FC = () => {
                     className={`p-2 w-fit text-sm rounded-sm bg-primary/20 text-textBlack flex items-center gap-2 cursor-pointer transition-colors ${
                       isMobile ? "" : "hover:bg-primary/30"
                     }`}
-                    onClick={() =>
-                      isMobile && setIsDropdownOpen(!isDropdownOpen)
-                    }
-                    onMouseEnter={() => !isMobile && setIsDropdownOpen(true)}
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   >
                     {sortOption ? (
                       <>
@@ -504,7 +560,7 @@ const Account: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {renderContent()}
               </div>
 
@@ -518,7 +574,8 @@ const Account: React.FC = () => {
             </div>
           </div>
 
-          <div className="">
+          {/* Sign Out Button */}
+          <div className="mt-8">
             <button
               onClick={handleSignOut}
               className="bg-red-500 text-sm hover:bg-red-700 text-white py-2 px-4 rounded"

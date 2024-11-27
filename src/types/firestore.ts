@@ -19,6 +19,17 @@ export const nutritionFactsSchema = z.object({
   sodium: z.number().optional(),
 });
 
+export enum TrainingGoal {
+  MuscleBuildingStrengthTraining = "Muscle Building/Strength Training",
+  Endurance = "Endurance",
+  Bulking = "Bulking",
+  FatLoss = "Fat Loss",
+  BodyRecomposition = "Body Recomposition",
+  WeightClassSport = "Weight Class Sport",
+  SportsSpecific = "Sports Specific",
+}
+export const trainingGoalSchema = z.nativeEnum(TrainingGoal);
+
 // Ingredients (unchanged)
 export const ingredientSchema = z.object({
   measurement: z.number(),
@@ -39,7 +50,7 @@ export const instructionSchema = z.object({
 const baseRecipeSchema = z.object({
   name: z.string().min(1, "Recipe name is required"),
   description: z.string().optional(),
-  
+  trainingGoals: z.array(trainingGoalSchema).optional(),  
 
   // Expanded recipe metadata
   prepTime: z.number().optional(),
@@ -84,3 +95,4 @@ export type Ingredient = z.infer<typeof ingredientSchema>;
 export type Instruction = z.infer<typeof instructionSchema>;
 export type NewRecipeData = z.infer<typeof baseRecipeSchema>;
 export type Recipe = z.infer<typeof recipeSchema>;
+// export type TrainingGoal = z.infer<typeof trainingGoalSchema>;
