@@ -1,17 +1,15 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import DietTag from "./DieTag";
-
-interface Filters {
-  types: string[];
-  categories: string[];
-}
-
 interface MobileFiltersProps {
-  filters: Filters;
+  filters: {
+    types: string[];
+    categories: string[];
+  };
   onFilterChange: (filterType: "types" | "categories", value: string) => void;
   isMobileFilterOpen: boolean;
   setIsMobileFilterOpen: (isOpen: boolean) => void;
+  onClearFilters: () => void;
 }
 
 const MobileFilters: React.FC<MobileFiltersProps> = ({

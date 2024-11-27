@@ -33,12 +33,15 @@ interface InitialRecipe {
   category: string[];
 }
 
+
+
 const Home = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, _setTotalPages] = useState(1);
   const [initialRecipes, setInitialRecipes] = useState<InitialRecipe[]>([]);
   const [filteredRecipes, setFilteredRecipes] = useState<InitialRecipe[]>([]);
+  const [forYouRecipes, setForYouRecipes] = useState<InitialRecipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { fetchWithCache } = useFirebaseCache();
   const RECIPES_PER_PAGE = 30;
@@ -50,6 +53,11 @@ const Home = () => {
   const [isForYou, setIsForYou] = useState(false);
   const { user } = useAuth();
   const [hasTrainingGoal, setHasTrainingGoal] = useState(false);
+
+  const [filters, setFilters] = useState({
+    types: [] as string[],
+    categories: [] as string[],
+  });
 
   useEffect(() => {
     const checkUserTrainingGoal = async () => {
@@ -83,11 +91,6 @@ const Home = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [isDropdownOpen]);
 
-  const [filters, setFilters] = useState({
-    types: [] as string[],
-    categories: [] as string[],
-  });
-
   useEffect(() => {
     const fetchRecipes = async () => {
       setIsLoading(true);
@@ -107,47 +110,30 @@ const Home = () => {
       }
     };
     fetchRecipes();
-  }, [currentPage]);
+  }, [currentPage, fetchWithCache]);
 
   useEffect(() => {
-    const fetchRecipes = async () => {
-      setIsLoading(true);
-      try {
-        const recipes = await fetchWithCache(
-          `recipes-page-${currentPage}`,
-          () => fetchPaginatedRecipes(currentPage, RECIPES_PER_PAGE),
-          1000 * 60 * 60 // 1 hour
-        );
-        const mappedRecipes = mapRecipes(recipes);
-        setInitialRecipes(mappedRecipes);
-        setFilteredRecipes(mappedRecipes);
-      } catch (error) {
-        console.error("Error fetching recipes:", error);
-      } finally {
-        setIsLoading(false);
+    const applyFilters = (recipes: InitialRecipe[]) => {
+      if (filters.types.length > 0 || filters.categories.length > 0) {
+        return recipes.filter((recipe) => {
+          const typeMatch =
+            filters.types.length === 0 ||
+            recipe.types.some((type) => filters.types.includes(type));
+          const categoryMatch =
+            filters.categories.length === 0 ||
+            recipe.category.some((cat) => filters.categories.includes(cat));
+          return typeMatch && categoryMatch;
+        });
       }
+      return recipes;
     };
-    fetchRecipes();
-  }, [currentPage]);
 
-  useEffect(() => {
-    if (filters.types.length > 0 || filters.categories.length > 0) {
-      const filtered = initialRecipes.filter((recipe) => {
-        const typeMatch =
-          filters.types.length === 0 ||
-          recipe.types.some((type) => filters.types.includes(type));
-        const categoryMatch =
-          filters.categories.length === 0 ||
-          recipe.category.some((cat) => filters.categories.includes(cat));
-        return typeMatch && categoryMatch;
-      });
-      setFilteredRecipes(filtered);
-    } else {
-      setFilteredRecipes(initialRecipes);
-    }
-  }, [filters, initialRecipes]);
+    const recipesToFilter = isForYou ? forYouRecipes : initialRecipes;
+    const filtered = applyFilters(recipesToFilter);
+    setFilteredRecipes(filtered);
+  }, [filters, initialRecipes, isForYou, forYouRecipes]);
 
-  const mapRecipes = (recipes: any[]): InitialRecipe[] => {
+  const mapRecipes = useCallback((recipes: any[]): InitialRecipe[] => {
     return recipes.map((recipe: any) => ({
       id: recipe.id,
       name: recipe.name || "Unnamed Recipe",
@@ -157,49 +143,34 @@ const Home = () => {
       types: recipe.type || [],
       category: recipe.category || [],
     }));
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleFilterChange = (
-    filterType: "types" | "categories",
-    value: string
-  ) => {
-    setFilters((prevFilters) => {
-      const updatedFilters = { ...prevFilters };
-      if (updatedFilters[filterType].includes(value)) {
-        updatedFilters[filterType] = updatedFilters[filterType].filter(
-          (item) => item !== value
-        );
-      } else {
-        updatedFilters[filterType] = [...updatedFilters[filterType], value];
-      }
-      return updatedFilters;
-    });
-  };
-
-  const handleSearch = useCallback(async (searchTerm: string) => {
-    setIsLoading(true);
-    setIsSearching(true);
-    try {
-      const searchResults = await searchRecipes(searchTerm);
-      const mappedResults = mapRecipes(searchResults);
-      setSearchResults(mappedResults);
-    } catch (error) {
-      console.error("Error searching recipes:", error);
-    } finally {
-      setIsLoading(false);
-      setIsSearching(false);
-    }
   }, []);
 
-  const handleSearchInputChange = useCallback(async (searchTerm: string) => {
-    if (searchTerm.length >= 4) {
-      setIsSearching(true);
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  const handleFilterChange = useCallback(
+    (filterType: "types" | "categories", value: string) => {
+      setFilters((prevFilters) => {
+        const updatedFilters = { ...prevFilters };
+        if (updatedFilters[filterType].includes(value)) {
+          updatedFilters[filterType] = updatedFilters[filterType].filter(
+            (item) => item !== value
+          );
+        } else {
+          updatedFilters[filterType] = [...updatedFilters[filterType], value];
+        }
+        return updatedFilters;
+      });
+    },
+    []
+  );
+
+  const handleSearch = useCallback(
+    async (searchTerm: string) => {
       setIsLoading(true);
+      setIsSearching(true);
       try {
         const searchResults = await searchRecipes(searchTerm);
         const mappedResults = mapRecipes(searchResults);
@@ -210,27 +181,41 @@ const Home = () => {
         setIsLoading(false);
         setIsSearching(false);
       }
-    } else {
-      setSearchResults([]);
-      setIsSearching(false);
-    }
-  }, []);
+    },
+    [mapRecipes]
+  );
 
-  const handleForYouToggle = async () => {
-    setIsForYou(!isForYou);
+  const handleSearchInputChange = useCallback(
+    async (searchTerm: string) => {
+      if (searchTerm.length >= 4) {
+        setIsSearching(true);
+        setIsLoading(true);
+        try {
+          const searchResults = await searchRecipes(searchTerm);
+          const mappedResults = mapRecipes(searchResults);
+          setSearchResults(mappedResults);
+        } catch (error) {
+          console.error("Error searching recipes:", error);
+        } finally {
+          setIsLoading(false);
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults([]);
+        setIsSearching(false);
+      }
+    },
+    [mapRecipes]
+  );
+
+  const handleForYouToggle = useCallback(async () => {
+    setIsForYou((prev) => !prev);
     if (!isForYou && user) {
       setIsLoading(true);
       try {
         const forYouRecipes = await fetchForYouRecipes(user.uid);
-        const mappedRecipes: InitialRecipe[] = forYouRecipes.map((recipe) => ({
-          id: recipe.id,
-          name: recipe.name,
-          calories: recipe.nutritionFacts?.calories,
-          prepTime: recipe.prepTime?.toString() || "N/A",
-          imageUrl: recipe.imageUrls?.[0] || "",
-          types: recipe.type || [],
-          category: recipe.category || [],
-        }));
+        const mappedRecipes = mapRecipes(forYouRecipes);
+        setForYouRecipes(mappedRecipes);
         setFilteredRecipes(mappedRecipes);
       } catch (error) {
         console.error("Error fetching 'For You' recipes:", error);
@@ -238,50 +223,63 @@ const Home = () => {
         setIsLoading(false);
       }
     } else {
-      // Reset to all recipes
       setFilteredRecipes(initialRecipes);
     }
-  };
+    // Clear filters when toggling
+    setFilters({ types: [], categories: [] });
+  }, [isForYou, user, initialRecipes, mapRecipes]);
 
-  const handleSort = (option: string) => {
-    setSortOption(option);
-    setIsDropdownOpen(false);
-    let sortedRecipes = [...filteredRecipes];
-    switch (option) {
-      case "calories-high-low":
-        sortedRecipes.sort((a, b) => (b.calories || 0) - (a.calories || 0));
-        break;
-      case "calories-low-high":
-        sortedRecipes.sort((a, b) => (a.calories || 0) - (b.calories || 0));
-        break;
-      case "prep-time-low-high":
-        sortedRecipes.sort(
-          (a, b) => parseInt(a.prepTime) - parseInt(b.prepTime)
-        );
-        break;
-      case "prep-time-high-low":
-        sortedRecipes.sort(
-          (a, b) => parseInt(b.prepTime) - parseInt(a.prepTime)
-        );
-        break;
-      default:
-        break;
-    }
-    setFilteredRecipes(sortedRecipes);
-  };
+  const handleSort = useCallback(
+    (option: string) => {
+      setSortOption(option);
+      setIsDropdownOpen(false);
+      let sortedRecipes = [...filteredRecipes];
+      switch (option) {
+        case "calories-high-low":
+          sortedRecipes.sort((a, b) => (b.calories || 0) - (a.calories || 0));
+          break;
+        case "calories-low-high":
+          sortedRecipes.sort((a, b) => (a.calories || 0) - (b.calories || 0));
+          break;
+        case "prep-time-low-high":
+          sortedRecipes.sort(
+            (a, b) => parseInt(a.prepTime) - parseInt(b.prepTime)
+          );
+          break;
+        case "prep-time-high-low":
+          sortedRecipes.sort(
+            (a, b) => parseInt(b.prepTime) - parseInt(a.prepTime)
+          );
+          break;
+        default:
+          break;
+      }
+      setFilteredRecipes(sortedRecipes);
+    },
+    [filteredRecipes]
+  );
 
-  const clearSort = () => {
+  const clearSort = useCallback(() => {
     setSortOption(null);
-    setFilteredRecipes([...initialRecipes]);
-  };
+    setFilteredRecipes(isForYou ? forYouRecipes : initialRecipes);
+  }, [initialRecipes, isForYou, forYouRecipes]);
 
-  const renderMobileFilters = () => (
-    <MobileFilters
-      filters={filters}
-      onFilterChange={handleFilterChange}
-      isMobileFilterOpen={isMobileFilterOpen}
-      setIsMobileFilterOpen={setIsMobileFilterOpen}
-    />
+  const clearFilters = useCallback(() => {
+    setFilters({ types: [], categories: [] });
+    setFilteredRecipes(isForYou ? forYouRecipes : initialRecipes);
+  }, [isForYou, forYouRecipes, initialRecipes]);
+
+  const renderMobileFilters = useCallback(
+    () => (
+      <MobileFilters
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        isMobileFilterOpen={isMobileFilterOpen}
+        setIsMobileFilterOpen={setIsMobileFilterOpen}
+        onClearFilters={clearFilters}
+      />
+    ),
+    [filters, handleFilterChange, isMobileFilterOpen, clearFilters]
   );
 
   return (
@@ -292,6 +290,8 @@ const Home = () => {
           onFilterChange={handleFilterChange}
           onSearch={handleSearch}
           onSearchInputChange={handleSearchInputChange}
+          onClearFilters={clearFilters}
+
         />
       </div>
       <div className="text-textBlack md:ml-[317px] xl:ml-[280px] 2xl:ml-[317px] mb-10">
@@ -485,7 +485,6 @@ const Home = () => {
                   >
                     {isForYou ? "All Recipes" : "For You"}
                   </button>
-                  {/* <button onClick={() => migrateRecipes()}>migrste</button> */}
                 </div>
               )}
             </div>

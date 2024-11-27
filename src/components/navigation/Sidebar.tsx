@@ -10,6 +10,7 @@ interface SidebarProps {
   onFilterChange: (filterType: "types" | "categories", value: string) => void;
   onSearch: (searchTerm: string) => void;
   onSearchInputChange: (searchTerm: string) => void;
+  onClearFilters: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
