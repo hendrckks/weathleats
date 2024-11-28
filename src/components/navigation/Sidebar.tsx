@@ -1,5 +1,5 @@
-import { Search } from "lucide-react";
-import { useState, useCallback } from "react";
+import { Search, X } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface SidebarProps {
@@ -9,11 +9,14 @@ interface SidebarProps {
   };
   onFilterChange: (filterType: "types" | "categories", value: string) => void;
   onSearch: (searchTerm: string) => void;
-  onSearchInputChange: (searchTerm: string) => void;
+  onSearchInputChange: (term: string) => void;
+  onImmediateClear: () => void;
   onClearFilters: () => void;
   searchTerm: string;
   searchSuggestions: string[];
   searchHistory: string[];
+  selectedSearchTerm: string;
+  onSearchSelect: (term: string) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -21,12 +24,19 @@ const Sidebar: React.FC<SidebarProps> = ({
   onFilterChange,
   onSearch,
   onSearchInputChange,
-  searchTerm,
+  onImmediateClear,
   searchSuggestions,
   searchHistory,
+  selectedSearchTerm,
+  onSearchSelect,
 }) => {
+  const [searchTerm, setSearchTerm] = useState(selectedSearchTerm);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setSearchTerm(selectedSearchTerm);
+  }, [selectedSearchTerm]);
 
   const handleSearch = useCallback(
     (e: React.FormEvent) => {
@@ -39,13 +49,26 @@ const Sidebar: React.FC<SidebarProps> = ({
     [searchTerm, onSearch, navigate]
   );
 
-  const handleSearchInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const term = e.target.value;
-      onSearchInputChange(term);
-    },
-    [onSearchInputChange]
-  );
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTerm = e.target.value;
+    setSearchTerm(newTerm);
+    if (newTerm === "") {
+      onImmediateClear();
+    } else {
+      onSearchInputChange(newTerm);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    onImmediateClear();
+  };
+
+  const handleSearchItemSelect = (term: string) => {
+    setSearchTerm(term);
+    onSearchSelect(term);
+    setIsSearchFocused(false);
+  };
 
   return (
     <div className="fixed left-0 top-0 flex h-[100vh] w-72 flex-col bg-background border-r border-r-primary/50 p-6 space-y-6">
@@ -57,12 +80,21 @@ const Sidebar: React.FC<SidebarProps> = ({
           <input
             type="text"
             placeholder="Browse all recipes"
-            className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none placeholder:text-sm focus:ring-2 focus:ring-primary"
+            className="w-full pl-10 pr-10 py-2 rounded-md border border-gray-300 focus:outline-none placeholder:text-sm focus:ring-2 focus:ring-primary"
             value={searchTerm}
-            onChange={handleSearchInputChange}
+            onChange={handleInputChange}
             onFocus={() => setIsSearchFocused(true)}
             onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
           />
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
         </form>
         {isSearchFocused &&
           (searchSuggestions.length > 0 || searchHistory.length > 0) && (
@@ -77,10 +109,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       <li
                         key={`suggestion-${index}`}
                         className="px-4 py-2 hover:bg-gray-100 text-sm text-gray-600 cursor-pointer"
-                        onClick={() => {
-                          onSearchInputChange(suggestion);
-                          onSearch(suggestion);
-                        }}
+                        onClick={() => handleSearchItemSelect(suggestion)}
                       >
                         {suggestion}
                       </li>
@@ -98,10 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       <li
                         key={`history-${index}`}
                         className="px-4 py-2 hover:bg-gray-100 text-sm text-gray-600 cursor-pointer"
-                        onClick={() => {
-                          onSearchInputChange(historyItem);
-                          onSearch(historyItem);
-                        }}
+                        onClick={() => handleSearchItemSelect(historyItem)}
                       >
                         {historyItem}
                       </li>

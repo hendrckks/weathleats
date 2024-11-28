@@ -17,6 +17,9 @@ interface MobileFiltersProps {
   searchSuggestions: string[];
   searchHistory: string[];
   onSearchClear: () => void;
+  onImmediateClear: () => void;
+  onSearchSelect: (term: string) => void;
+  selectedSearchTerm: string;
 }
 
 const MobileFilters: React.FC<MobileFiltersProps> = ({
@@ -31,14 +34,17 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
   searchSuggestions,
   searchHistory,
   onSearchClear,
+  onImmediateClear,
+  onSearchSelect,
+  selectedSearchTerm,
 }) => {
   const drawerRef = useRef<HTMLDivElement | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+  const [localSearchTerm, setLocalSearchTerm] = useState(selectedSearchTerm);
 
   useEffect(() => {
-    setLocalSearchTerm(searchTerm);
-  }, [searchTerm]);
+    setLocalSearchTerm(selectedSearchTerm);
+  }, [selectedSearchTerm]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -72,11 +78,15 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
 
   const handleSearchInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const term = e.target.value;
-      setLocalSearchTerm(term);
-      onSearchInputChange(term);
+      const newTerm = e.target.value;
+      setLocalSearchTerm(newTerm);
+      if (newTerm === "") {
+        onImmediateClear();
+      } else {
+        onSearchInputChange(newTerm);
+      }
     },
-    [onSearchInputChange]
+    [onSearchInputChange, onImmediateClear]
   );
 
   const handleClearSearch = useCallback(() => {
@@ -86,12 +96,11 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
 
   const handleSearchSelect = useCallback(
     (selectedTerm: string) => {
-      setLocalSearchTerm(selectedTerm); // This line sets the input value
-      onSearchInputChange(selectedTerm);
-      onSearch(selectedTerm);
-      setIsMobileFilterOpen(false);
+      setLocalSearchTerm(selectedTerm);
+      onSearchSelect(selectedTerm);
+      setIsSearchFocused(false);
     },
-    [onSearchInputChange, onSearch, setIsMobileFilterOpen]
+    [onSearchSelect]
   );
 
   const handleFilterChange = (
@@ -112,10 +121,8 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
         {isMobileFilterOpen ? "Hide Filters" : "Search / Filter"}
       </button>
 
-      {/* Overlay */}
       {isMobileFilterOpen && <div className="fixed inset-0 bg-black/20 z-40" />}
 
-      {/* Drawer */}
       <div
         ref={drawerRef}
         className={`fixed right-0 top-0 h-full bg-background w-80 p-6 shadow-xl transform transition-transform duration-300 ease-in-out z-50 ${
@@ -132,15 +139,14 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
           </button>
         </div>
 
-        {/* Search Section */}
         <div className="space-y-2 mb-6">
           <h3 className="font-medium mb-3">Search</h3>
-          <form onSubmit={handleSearch} className="relative">
+          <form onSubmit={handleSearch} className="relative flex items-center">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <input
               type="text"
               placeholder="Browse all recipes"
-              className="w-[95%] pl-10 pr-4 py-2 rounded-md border overflow-auto border-gray-300 focus:outline-none placeholder:text-sm focus:ring-2 focus:ring-primary"
+              className="w-[95%] pl-10 pr-10 py-2 rounded-md border overflow-auto border-gray-300 focus:outline-none placeholder:text-sm focus:ring-2 focus:ring-primary"
               value={localSearchTerm}
               onChange={handleSearchInputChange}
               onFocus={() => setIsSearchFocused(true)}
@@ -150,56 +156,54 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
               <button
                 type="button"
                 onClick={handleClearSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400"
               >
-                <X className="h-6 w-6 relative left-6 text-textBlack" />
+                <X className="h-5 w-5" />
               </button>
             )}
           </form>
-          {isSearchFocused &&
-            (searchSuggestions.length > 0 || searchHistory.length > 0) && (
-              <div className="absolute right-1 z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg">
-                {searchSuggestions.length > 0 && (
-                  <div>
-                    <h3 className="px-4 py-2 text-sm font-medium text-gray-500 underline">
-                      Suggestions
-                    </h3>
-                    <ul>
-                      {searchSuggestions.map((suggestion, index) => (
-                        <li
-                          key={`suggestion-${index}`}
-                          className="px-4 py-2 hover:bg-gray-100 text-sm text-gray-600 cursor-pointer"
-                          onClick={() => handleSearchSelect(suggestion)}
-                        >
-                          {suggestion}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {searchHistory.length > 0 && (
-                  <div>
-                    <h3 className="px-4 py-2 text-sm font-medium text-textBlack underline">
-                      Recent Searches
-                    </h3>
-                    <ul>
-                      {searchHistory.map((historyItem, index) => (
-                        <li
-                          key={`history-${index}`}
-                          className="px-4 py-2 hover:bg-gray-100 text-sm text-gray-600 cursor-pointer"
-                          onClick={() => handleSearchSelect(historyItem)}
-                        >
-                          {historyItem}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
+          {isSearchFocused && (
+            <div className="absolute right-1 z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg">
+              {searchSuggestions.length > 0 && (
+                <div>
+                  <h3 className="px-4 py-2 text-sm font-medium text-gray-500 underline">
+                    Suggestions
+                  </h3>
+                  <ul>
+                    {searchSuggestions.map((suggestion, index) => (
+                      <li
+                        key={`suggestion-${index}`}
+                        className="px-4 py-2 hover:bg-gray-100 text-sm text-gray-600 cursor-pointer"
+                        onClick={() => handleSearchSelect(suggestion)}
+                      >
+                        {suggestion}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {searchHistory.length > 0 && (
+                <div>
+                  <h3 className="px-4 py-2 text-sm font-medium text-textBlack underline">
+                    Recent Searches
+                  </h3>
+                  <ul>
+                    {searchHistory.map((historyItem, index) => (
+                      <li
+                        key={`history-${index}`}
+                        className="px-4 py-2 hover:bg-gray-100 text-sm text-gray-600 cursor-pointer"
+                        onClick={() => handleSearchSelect(historyItem)}
+                      >
+                        {historyItem}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Rest of the component remains the same */}
         <div className="space-y-6">
           <div>
             <h3 className="font-medium mb-3">Types</h3>
@@ -230,8 +234,8 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
               >
                 <input
                   type="checkbox"
-                  checked={filters.types.includes(category)}
-                  onChange={() => handleFilterChange("types", category)}
+                  checked={filters.categories.includes(category)}
+                  onChange={() => handleFilterChange("categories", category)}
                   disabled={searchTerm.length > 0}
                   className="rounded border-gray-300 text-primary focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 />
@@ -254,6 +258,9 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
 
 export default MobileFilters;
 
+{
+  /* 
+
 // function debounce<F extends (...args: any[]) => any>(func: F, wait: number) {
 //   let timeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -265,4 +272,5 @@ export default MobileFilters;
 //     }
 //     timeout = setTimeout(() => func.apply(context, args), wait);
 //   };
-// }
+// } */
+}

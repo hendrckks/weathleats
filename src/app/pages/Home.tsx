@@ -1,12 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  ChevronDown,
-  Heart,
-  NotebookPen,
-  // ShoppingBasket,
-  Target,
-  X,
-} from "lucide-react";
+import { ChevronDown, Heart, NotebookPen, Target, X } from "lucide-react";
 import Sidebar from "../../components/navigation/Sidebar";
 import RecipeCard from "../../components/RecipeCard";
 import { Link } from "react-router-dom";
@@ -14,15 +7,12 @@ import {
   fetchForYouRecipes,
   fetchPaginatedRecipes,
   fetchUserData,
-  // getTotalRecipesCount,
   searchRecipes,
 } from "../../lib/firebase/firestore";
 import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
 import MobileFilters from "../../components/MobileFilters";
 import { useAuth } from "../../context/AuthContext";
-// import { migrateSearchKeywords } from "../../lib/migrate";
-// import { migrateRecipes } from "../../lib/migrate";
 
 interface InitialRecipe {
   id: string;
@@ -56,6 +46,7 @@ const Home = () => {
   const [_searchError, setSearchError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
+  const [selectedSearchTerm, setSelectedSearchTerm] = useState("");
 
   const isMounted = useRef(true);
 
@@ -275,9 +266,19 @@ const Home = () => {
     [mapRecipes]
   );
 
+  const handleSearchSelect = useCallback(
+    (term: string) => {
+      setSelectedSearchTerm(term);
+      setSearchTerm(term);
+      handleSearch(term);
+    },
+    [handleSearch]
+  );
+
   const handleSearchInputChange = useCallback(
     async (term: string) => {
       setSearchTerm(term);
+      setSelectedSearchTerm(term);
       if (term.length >= 3) {
         setIsSearching(true);
         setIsLoading(true);
@@ -302,16 +303,23 @@ const Home = () => {
           setIsSearching(false);
         }
       } else {
-        // When search term is cleared, restore original recipes
         setSearchResults([]);
         setSearchSuggestions([]);
         setIsSearching(false);
-        // Restore original recipes based on whether it's "For You" or not
         setFilteredRecipes(isForYou ? forYouRecipes : initialRecipes);
       }
     },
     [mapRecipes, isForYou, forYouRecipes, initialRecipes]
   );
+
+  const handleImmediateClear = useCallback(() => {
+    setSearchTerm("");
+    setSelectedSearchTerm("");
+    setSearchResults([]);
+    setSearchSuggestions([]);
+    setIsSearching(false);
+    setFilteredRecipes(isForYou ? forYouRecipes : initialRecipes);
+  }, [isForYou, forYouRecipes, initialRecipes]);
 
   const handleForYouToggle = useCallback(async () => {
     setIsForYou((prev) => !prev);
@@ -393,6 +401,9 @@ const Home = () => {
         onClearFilters={clearFilters}
         onSearch={handleSearch}
         onSearchInputChange={handleSearchInputChange}
+        onImmediateClear={handleImmediateClear}
+        onSearchSelect={handleSearchSelect}
+        selectedSearchTerm={selectedSearchTerm}
         searchTerm={searchTerm}
         searchSuggestions={searchSuggestions}
         searchHistory={searchHistory}
@@ -404,6 +415,11 @@ const Home = () => {
       handleFilterChange,
       isMobileFilterOpen,
       clearFilters,
+      handleSearch,
+      handleSearchInputChange,
+      handleImmediateClear,
+      handleSearchSelect,
+      selectedSearchTerm,
       searchTerm,
       searchSuggestions,
       searchHistory,
@@ -419,10 +435,13 @@ const Home = () => {
           onFilterChange={handleFilterChange}
           onSearch={handleSearch}
           onSearchInputChange={handleSearchInputChange}
+          onImmediateClear={handleImmediateClear}
+          onSearchSelect={handleSearchSelect}
           onClearFilters={clearFilters}
           searchTerm={searchTerm}
           searchSuggestions={searchSuggestions}
           searchHistory={searchHistory}
+          selectedSearchTerm={selectedSearchTerm}
         />
       </div>
       <div className="text-textBlack md:ml-[317px] xl:ml-[280px] 2xl:ml-[317px] mb-10">
@@ -546,7 +565,6 @@ const Home = () => {
                 </div>
               )}
               {renderMobileFilters()}
-              {/* <button onClick={() => migrateSearchKeywords()}>migrate</button> */}
             </div>
             <div className="flex gap-4 items-center mt-2">
               <h2 className="text-xl">
