@@ -12,6 +12,7 @@ const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   onPageChange,
 }) => {
+  if (totalPages <= 1) return null;
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
 

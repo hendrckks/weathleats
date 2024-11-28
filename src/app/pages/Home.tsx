@@ -8,11 +8,13 @@ import {
   fetchPaginatedRecipes,
   fetchUserData,
   searchRecipes,
+  getTotalRecipesCount,
 } from "../../lib/firebase/firestore";
 import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
 import MobileFilters from "../../components/MobileFilters";
 import { useAuth } from "../../context/AuthContext";
+// import { migrateRecipes } from "../../lib/migrate";
 
 interface InitialRecipe {
   id: string;
@@ -27,13 +29,13 @@ interface InitialRecipe {
 const Home = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, _setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [initialRecipes, setInitialRecipes] = useState<InitialRecipe[]>([]);
   const [filteredRecipes, setFilteredRecipes] = useState<InitialRecipe[]>([]);
   const [forYouRecipes, setForYouRecipes] = useState<InitialRecipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { fetchWithCache } = useFirebaseCache();
-  const RECIPES_PER_PAGE = 30;
+  const RECIPES_PER_PAGE = 7;
   const [sortOption, setSortOption] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<InitialRecipe[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -47,6 +49,7 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [selectedSearchTerm, setSelectedSearchTerm] = useState("");
+  const [_lastVisible, setLastVisible] = useState<any>(null);
 
   const isMounted = useRef(true);
 
@@ -167,14 +170,20 @@ const Home = () => {
     const fetchRecipes = async () => {
       setIsLoading(true);
       try {
-        const recipes = await fetchWithCache(
-          `recipes-page-${currentPage}`,
-          () => fetchPaginatedRecipes(currentPage, RECIPES_PER_PAGE),
-          1000 * 60 * 60 // 1 hour
+        const { recipes, lastVisible } = await fetchPaginatedRecipes(
+          currentPage,
+          RECIPES_PER_PAGE
         );
         const mappedRecipes = mapRecipes(recipes);
         setInitialRecipes(mappedRecipes);
         setFilteredRecipes(mappedRecipes);
+        setLastVisible(lastVisible);
+
+        // Fetch total count only on the first page load
+        if (currentPage === 1) {
+          const totalCount = await getTotalRecipesCount();
+          setTotalPages(Math.ceil(totalCount / RECIPES_PER_PAGE));
+        }
       } catch (error) {
         console.error("Error fetching recipes:", error);
       } finally {
@@ -565,6 +574,7 @@ const Home = () => {
                 </div>
               )}
               {renderMobileFilters()}
+              {/* <button onClick={() => migrateRecipes()}>migrate</button> */}
             </div>
             <div className="flex gap-4 items-center mt-2">
               <h2 className="text-xl">

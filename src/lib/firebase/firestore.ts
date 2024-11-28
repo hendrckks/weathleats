@@ -11,6 +11,9 @@ import {
   orderBy,
   limit,
   where,
+  startAfter,
+  DocumentData,
+  QueryDocumentSnapshot,
   // startAfter,
 } from "firebase/firestore";
 import {
@@ -196,7 +199,8 @@ export const fetchForYouRecipes = async (userId: string): Promise<Recipe[]> => {
   const userGoals = userDoc.data().trainingGoals || [];
 
   if (userGoals.length === 0) {
-    return fetchPaginatedRecipes(1, 30); // Return default recipes if no goals set
+    const { recipes } = await fetchPaginatedRecipes(1, 30); // Destructure the recipes
+    return recipes; // Return only the recipes array
   }
 
   const recipesRef = collection(db, "recipes");
@@ -406,48 +410,75 @@ export const getTotalRecipesCount = async (): Promise<number> => {
 };
 
 export const fetchPaginatedRecipes = async (
-  _page: number,
+  page: number,
   recipesPerPage: number = 30
-): Promise<Recipe[]> => {
+): Promise<{
+  recipes: Recipe[];
+  lastVisible: QueryDocumentSnapshot<DocumentData> | null;
+}> => {
   const recipesRef = collection(db, "recipes");
-  const q = query(
+  let q = query(
     recipesRef,
     orderBy("createdAt", "desc"),
     limit(recipesPerPage)
   );
 
+  if (page > 1) {
+    const lastVisibleSnapshot = await getLastVisibleDoc(
+      page - 1,
+      recipesPerPage
+    );
+    if (lastVisibleSnapshot) {
+      q = query(q, startAfter(lastVisibleSnapshot));
+    }
+  }
+
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((doc) => {
+  const recipes: Recipe[] = [];
+
+  querySnapshot.forEach((doc) => {
     const data = doc.data();
-    return {
-      id: doc.id,
-      name: data.name,
-      createdAt: data.createdAt as Timestamp,
-      updatedAt: data.updatedAt as Timestamp,
-      searchKeywords: data.searchKeywords || [],
-      description: data.description,
-      type: data.type || [],
-      trainingGoals: (data.trainingGoals as TrainingGoal[]) || [],
-      imageUrls: data.imageUrls || [],
-      mealBenefits: data.mealBenefits || [],
-      nutritionFacts: data.nutritionFacts || {},
-      instructions: data.instructions || [],
-      ingredients: data.ingredients || [],
-      category: data.category || [],
-      prepTime: data.prepTime,
-      cookTime: data.cookTime,
-      totalTime: data.totalTime,
-      servings: data.servings,
-      difficulty: data.difficulty,
-      cuisine: data.cuisine,
-      dietaryRestrictions: data.dietaryRestrictions || [],
-      calories: data.calories,
-      equipment: data.equipment || [],
-      notes: data.notes,
-      tags: data.tags || [],
-      sourceUrl: data.sourceUrl,
-    } as Recipe;
+    try {
+      const validatedRecipe = recipeSchema.parse({
+        id: doc.id,
+        ...data,
+        // Ensure all optional fields are present
+        trainingGoals: data.trainingGoals || [],
+        category: data.category || [],
+        type: data.type || [],
+        imageUrls: data.imageUrls || [],
+        mealBenefits: data.mealBenefits || [],
+        instructions: data.instructions || [],
+        ingredients: data.ingredients || [],
+        dietaryRestrictions: data.dietaryRestrictions || [],
+        equipment: data.equipment || [],
+        tags: data.tags || [],
+        searchKeywords:
+          data.searchKeywords || generateSearchKeywords(data.name),
+      });
+      recipes.push(validatedRecipe);
+    } catch (error) {
+      console.error(`Error validating recipe ${doc.id}:`, error);
+    }
   });
+
+  const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+
+  return { recipes, lastVisible };
+};
+
+const getLastVisibleDoc = async (
+  page: number,
+  recipesPerPage: number
+): Promise<QueryDocumentSnapshot<DocumentData> | null> => {
+  const recipesRef = collection(db, "recipes");
+  const q = query(
+    recipesRef,
+    orderBy("createdAt", "desc"),
+    limit(page * recipesPerPage)
+  );
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs[querySnapshot.docs.length - 1] || null;
 };
 
 export const fetchRecipeById = async (id: string): Promise<Recipe | null> => {
