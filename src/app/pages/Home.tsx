@@ -35,7 +35,7 @@ const Home = () => {
   const [forYouRecipes, setForYouRecipes] = useState<InitialRecipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { fetchWithCache } = useFirebaseCache();
-  const RECIPES_PER_PAGE = 7;
+  const RECIPES_PER_PAGE = 30;
   const [sortOption, setSortOption] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<InitialRecipe[]>([]);
   const [isSearching, setIsSearching] = useState(false);
