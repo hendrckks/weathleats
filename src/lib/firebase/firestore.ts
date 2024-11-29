@@ -292,18 +292,30 @@ export const filterRecipesByTypeAndCategory = async (
   }
 };
 
-export const searchRecipes = async (searchTerm: string): Promise<Recipe[]> => {
+export const searchRecipes = async (
+  searchTerm: string,
+  exact: boolean = false
+): Promise<Recipe[]> => {
   try {
     const normalizedSearchTerm = normalizeText(searchTerm);
     const searchWords = normalizedSearchTerm.split(" ");
 
-    // Create a query to search for recipes where any of the searchKeywords match
-    const recipesRef = collection(db, "recipes");
-    const q = query(
-      recipesRef,
-      where("searchKeywords", "array-contains-any", searchWords),
-      limit(30)
-    );
+    let q;
+    if (exact) {
+      // For exact matches, search for the full normalized term
+      q = query(
+        collection(db, "recipes"),
+        where("searchKeywords", "array-contains", normalizedSearchTerm),
+        limit(30)
+      );
+    } else {
+      // For partial matches, use the existing array-contains-any query
+      q = query(
+        collection(db, "recipes"),
+        where("searchKeywords", "array-contains-any", searchWords),
+        limit(30)
+      );
+    }
 
     const querySnapshot = await getDocs(q);
     const searchResults: Recipe[] = [];
@@ -311,16 +323,17 @@ export const searchRecipes = async (searchTerm: string): Promise<Recipe[]> => {
     querySnapshot.forEach((doc) => {
       try {
         const recipeData = doc.data();
-        // Score the match based on how many search words appear in the recipe name
         const recipeName = normalizeText(recipeData.name);
-        const matchScore = searchWords.filter((word) =>
-          recipeName.includes(word)
-        ).length;
+        const matchScore = exact
+          ? recipeName === normalizedSearchTerm
+            ? 1
+            : 0
+          : searchWords.filter((word) => recipeName.includes(word)).length;
 
         const validatedRecipe = recipeSchema.parse({
           id: doc.id,
           ...recipeData,
-          _matchScore: matchScore, // Add match score for sorting
+          _matchScore: matchScore,
         });
         searchResults.push(validatedRecipe);
       } catch (error) {
@@ -328,7 +341,6 @@ export const searchRecipes = async (searchTerm: string): Promise<Recipe[]> => {
       }
     });
 
-    // Sort results by match score (best matches first)
     return searchResults.sort(
       (a: any, b: any) => (b._matchScore || 0) - (a._matchScore || 0)
     );

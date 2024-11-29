@@ -8,7 +8,7 @@ interface SidebarProps {
     categories: string[];
   };
   onFilterChange: (filterType: "types" | "categories", value: string) => void;
-  onSearch: (searchTerm: string) => void;
+  onSearch: (searchTerm: string, exact: boolean) => void;
   onSearchInputChange: (term: string) => void;
   onImmediateClear: () => void;
   onClearFilters: () => void;
@@ -42,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     (e: React.FormEvent) => {
       e.preventDefault();
       if (searchTerm.length >= 3) {
-        onSearch(searchTerm);
+        onSearch(searchTerm, false); // Use non-exact search for manual searches
         navigate("/");
       }
     },

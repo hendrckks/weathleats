@@ -14,7 +14,6 @@ import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
 import MobileFilters from "../../components/MobileFilters";
 import { useAuth } from "../../context/AuthContext";
-// import { migrateRecipes } from "../../lib/migrate";
 
 interface InitialRecipe {
   id: string;
@@ -249,13 +248,13 @@ const Home = () => {
   );
 
   const handleSearch = useCallback(
-    async (term: string) => {
+    async (term: string, exact: boolean = false) => {
       if (term.length >= 3) {
         setIsLoading(true);
         setIsSearching(true);
         setSearchError(null);
         try {
-          const searchResults = await searchRecipes(term);
+          const searchResults = await searchRecipes(term, exact);
           const mappedResults = mapRecipes(searchResults);
           setSearchResults(mappedResults);
           setSearchHistory((prev) =>
@@ -279,7 +278,7 @@ const Home = () => {
     (term: string) => {
       setSelectedSearchTerm(term);
       setSearchTerm(term);
-      handleSearch(term);
+      handleSearch(term, true); // Use exact search when selecting a suggestion
     },
     [handleSearch]
   );
@@ -574,7 +573,6 @@ const Home = () => {
                 </div>
               )}
               {renderMobileFilters()}
-              {/* <button onClick={() => migrateRecipes()}>migrate</button> */}
             </div>
             <div className="flex gap-4 items-center mt-2">
               <h2 className="text-xl">
