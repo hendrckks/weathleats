@@ -202,7 +202,11 @@ const Account: React.FC = () => {
     }
 
     if (paginatedRecipes.length === 0) {
-      return <p className="text-sm text-textBlack">No recipes found matching the selected filters.</p>;
+      return (
+        <p className="text-sm text-textBlack">
+          No recipes found matching the selected filters.
+        </p>
+      );
     }
 
     return paginatedRecipes.map((recipe) => (
@@ -357,7 +361,7 @@ const Account: React.FC = () => {
             <div className="w-full lg:w-1/3 space-y-8">
               {/* Training Goals */}
               <div>
-                <h2 className="text-2xl text-textBlack font-medium mb-4">
+                <h2 className="md:text-2xl text-xl text-textBlack font-medium mb-4">
                   Training Goals
                 </h2>
                 <div className="flex flex-wrap gap-2">
@@ -425,7 +429,9 @@ const Account: React.FC = () => {
 
             {/* Right Column: Favorite Recipes */}
             <div className="w-full lg:w-2/3">
-              <span className="text-2xl text-textBlack">Favourite Recipes</span>
+              <span className="md:text-2xl text-xl text-textBlack">
+                Favourite Recipes
+              </span>
               <div className="flex justify-between items-center mb-6">
                 <p className="text-gray-600 text-sm md:text-sm flex items-center">
                   Showing
