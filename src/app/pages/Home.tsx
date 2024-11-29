@@ -279,6 +279,7 @@ const Home = () => {
       setSelectedSearchTerm(term);
       setSearchTerm(term);
       handleSearch(term, true); // Use exact search when selecting a suggestion
+      setIsMobileFilterOpen(false);
     },
     [handleSearch]
   );
