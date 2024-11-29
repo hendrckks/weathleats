@@ -184,7 +184,7 @@ const Account: React.FC = () => {
     if (favorites.length === 0) {
       return (
         <div className="col-span-2 flex flex-col items-center justify-center py-12 text-center">
-          <Heart className="h-16 w-16 text-gray-300 mb-4" />
+          <Heart className="h-16 w-16 text-primary/20 mb-4" />
           <h3 className="text-xl font-medium text-textBlack mb-2">
             No Favorite Recipes Yet
           </h3>
@@ -202,7 +202,7 @@ const Account: React.FC = () => {
     }
 
     if (paginatedRecipes.length === 0) {
-      return <p>No recipes found matching the selected filters.</p>;
+      return <p className="text-sm text-textBlack">No recipes found matching the selected filters.</p>;
     }
 
     return paginatedRecipes.map((recipe) => (
@@ -318,7 +318,7 @@ const Account: React.FC = () => {
           {/* Profile Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <h1 className="text-3xl md:text-5xl font-medium text-gray-800 mb-4 md:mb-0">
-              Your Profile
+              Hi, {user?.displayName?.split(" ")[0] || "User"}
             </h1>
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
               <div className="flex items-center gap-4">
@@ -357,7 +357,7 @@ const Account: React.FC = () => {
             <div className="w-full lg:w-1/3 space-y-8">
               {/* Training Goals */}
               <div>
-                <h2 className="text-xl text-textBlack font-medium mb-4">
+                <h2 className="text-2xl text-textBlack font-medium mb-4">
                   Training Goals
                 </h2>
                 <div className="flex flex-wrap gap-2">
@@ -367,7 +367,7 @@ const Account: React.FC = () => {
                       onClick={() => handleTrainingGoalChange(goal)}
                       className={`px-3 py-1 rounded transition-colors text-sm ${
                         trainingGoals.includes(goal)
-                          ? "bg-gradient-to-b from-[#637257] to-[#4b5942] text-white"
+                          ? "bg-gradient-to-b from-[#637257] to-[#4b5942] text-background"
                           : "bg-gray-200 text-textBlack"
                       }`}
                     >
@@ -425,8 +425,9 @@ const Account: React.FC = () => {
 
             {/* Right Column: Favorite Recipes */}
             <div className="w-full lg:w-2/3">
+              <span className="text-2xl text-textBlack">Favourite Recipes</span>
               <div className="flex justify-between items-center mb-6">
-                <p className="text-gray-600 text-sm md:text-base flex items-center">
+                <p className="text-gray-600 text-sm md:text-sm flex items-center">
                   Showing
                   <span className="mx-2">
                     <Heart className="h-5 w-5 text-primary" />
@@ -578,7 +579,7 @@ const Account: React.FC = () => {
           <div className="mt-8">
             <button
               onClick={handleSignOut}
-              className="bg-red-500 text-sm hover:bg-red-700 text-white py-2 px-4 rounded"
+              className="bg-gradient-to-b from-[#637257] to-[#4b5942] text-textWhite py-2 px-4 rounded"
             >
               Sign Out
             </button>

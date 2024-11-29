@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavouritesContext";
 import { toast } from "../hooks/useToast";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useFirebaseCache } from "../lib/cache/cacheUtils";
 import { fetchRecipeById } from "../lib/firebase/firestore";
 import HighlightedText from "./HighlightedTex";
@@ -32,6 +32,9 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   const [imageError, setImageError] = useState(false);
   const { fetchWithCache } = useFirebaseCache();
   const [isLiked, setIsLiked] = useState(isFavorite(id));
+  const [isDissolving, setIsDissolving] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const dissolveAnimRef = useRef<SVGAnimateElement>(null);
 
   const navigate = useNavigate();
 
@@ -49,10 +52,23 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
         });
         navigate("/login");
       } else {
-        setIsLiked((prev) => !prev);
         if (isLiked) {
-          removeFavorite(id);
+          // Start dissolve animation before removing from favorites
+          setIsDissolving(true);
+
+          // Trigger the SVG animation
+          if (dissolveAnimRef.current) {
+            dissolveAnimRef.current.beginElement();
+          }
+
+          // Wait for animation to complete before updating state
+          setTimeout(() => {
+            setIsLiked(false);
+            removeFavorite(id);
+            setIsDissolving(false);
+          }, 1500);
         } else {
+          setIsLiked(true);
           addFavorite(id);
           toast({
             title: "",
@@ -97,17 +113,81 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
       onMouseEnter={prefetchRecipe}
     >
       <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        whileHover={{
-          scale: 1.025,
-          transition: {
-            duration: 0.2,
-          },
+        ref={cardRef}
+        style={{
+          filter: isDissolving ? `url(#dissolve-filter-${id})` : "none",
         }}
-        className="w-full flex flex-col rounded-md cursor-pointer relative md:mt-0 mt-4"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{
+          opacity: isDissolving ? 0 : 1,
+          y: 0,
+          scale: isDissolving ? 1.2 : 1,
+        }}
+        transition={{
+          duration: isDissolving ? 1.5 : 0.5,
+          ease: "easeIn",
+        }}
+        className={`w-full flex flex-col rounded-md cursor-pointer relative md:mt-0 mt-4`}
       >
+        <svg
+          className="absolute"
+          viewBox="0 0 1 1"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <filter
+              id={`dissolve-filter-${id}`}
+              x="-200%"
+              y="-200%"
+              width="400%"
+              height="400%"
+              color-interpolation-filters="sRGB"
+            >
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.01"
+                numOctaves="3"
+                result="noise"
+                seed="1"
+              ></feTurbulence>
+              <feComponentTransfer in="noise" result="adjustedNoise">
+                <feFuncR type="linear" slope="2.5" intercept="-0.5"></feFuncR>
+                <feFuncG type="linear" slope="2.5" intercept="-0.5"></feFuncG>
+              </feComponentTransfer>
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.8"
+                numOctaves="4"
+                result="fineNoise"
+              ></feTurbulence>
+              <feMerge result="mergedNoise">
+                <feMergeNode in="adjustedNoise"></feMergeNode>
+                <feMergeNode in="fineNoise"></feMergeNode>
+              </feMerge>
+              <feDisplacementMap
+                in="SourceGraphic"
+                in2="mergedNoise"
+                scale="0"
+                xChannelSelector="R"
+                yChannelSelector="G"
+              >
+                <animate
+                  ref={dissolveAnimRef}
+                  attributeName="scale"
+                  from="0"
+                  to="100"
+                  dur="1.5s"
+                  // Add these timing attributes for a more explosive feel
+                  calcMode="spline"
+                  keyTimes="0; 0.2; 1"
+                  keySplines="0.4 0 1 1; 0.3 0.1 0.1 1"
+                  begin="indefinite"
+                  fill="freeze"
+                />
+              </feDisplacementMap>
+            </filter>
+          </defs>
+        </svg>
         <div className="absolute top-4 left-2 flex items-center space-x-2 z-30">
           <div className="flex items-center backdrop-blur-lg bg-white/30 px-1 py-1 rounded-xl text-white">
             <svg
