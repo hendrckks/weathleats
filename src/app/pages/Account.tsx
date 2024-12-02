@@ -12,7 +12,7 @@ import {
 import { Recipe, TrainingGoal } from "../../types/firestore";
 import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
-import { Loader2, Heart, ChevronDown, X } from "lucide-react";
+import { Loader2, Heart, ChevronDown, X, Pen } from "lucide-react";
 import ErrorBoundary from "../../components/ErrorBoundary";
 import DietTag from "../../components/DieTag";
 
@@ -348,9 +348,9 @@ const Account: React.FC = () => {
               </div>
               <Link
                 to="/account"
-                className="px-4 py-2 bg-gray-100 rounded-[4px] text-sm hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 bg-gray-100 rounded-[4px] text-sm flex items-center gap-2 hover:bg-gray-200 transition-colors"
               >
-                Edit Account
+                Edit Account<span><Pen className="text-textGrey h-4 w-4"/></span>
               </Link>
             </div>
           </div>
