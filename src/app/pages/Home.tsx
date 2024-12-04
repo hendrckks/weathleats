@@ -14,6 +14,7 @@ import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
 import MobileFilters from "../../components/MobileFilters";
 import { useAuth } from "../../context/AuthContext";
+// import { migrateRecipes } from "../../lib/migrate";
 
 interface InitialRecipe {
   id: string;
@@ -62,7 +63,7 @@ const Home = () => {
     () => (
       <div className="flex flex-col md:flex-row justify-between">
         <div>
-          <h1 className="text-4xl md:text-5xl">
+          <h1 className="text-4xl md:text-[48px] md:leading-[56px]">
             1000 Plus performance <br className="hidden md:block" />
             driven recipes for
             <span className="text-[#4b5942] ml-3">athletes.</span>
@@ -95,12 +96,11 @@ const Home = () => {
             </div>
           </div>
           <div className="flex">
-            <Link
-              to="/profile"
+            <div
               className="md:p-5 p-3 bg-background w-1/2 text-center md:text-sm text-xs rounded-md cursor-pointer hover:bg-background/90 transition-colors"
             >
               Get full access
-            </Link>
+            </div>
             <Link
               to="/"
               className="w-1/2 text-center md:p-4 p-3 text-textWhite md:text-sm text-xs cursor-pointer"
@@ -579,6 +579,7 @@ const Home = () => {
               <h2 className="text-xl">
                 {isForYou ? "For You Recipes" : "Suggested Recipes"}
               </h2>
+              {/* <button onClick={() => migrateRecipes()} className="text-black" >migrate</button> */}
               {hasTrainingGoal && (
                 <div className="relative">
                   <button
