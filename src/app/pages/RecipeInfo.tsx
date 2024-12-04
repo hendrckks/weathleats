@@ -83,7 +83,7 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
             </p>
           </div> */}
         </div>
-        <div className="w-full md:w-1/3">
+        <div className="w-full md:w-1/2">
           <p className="text-base text-textBlack">{recipe.description}</p>
         </div>
         <div>
