@@ -109,7 +109,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   return (
     <Link
       to={`/recipes/${id}`}
-      className="block w-full"
+      className="block w-full hover:scale-105 transition-transform duration-150 ease-linear"
       onMouseEnter={prefetchRecipe}
     >
       <motion.div
