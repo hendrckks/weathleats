@@ -1,4 +1,10 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+} from "react";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../lib/firebase/clientApp";
@@ -12,12 +18,16 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  isRefreshing: boolean;
+  refreshToken: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   setUser: () => {},
+  isRefreshing: false,
+  refreshToken: () => Promise.resolve(),
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -31,6 +41,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       : null;
   });
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const refreshToken = useCallback(async () => {
+    if (auth.currentUser) {
+      setIsRefreshing(true);
+      try {
+        await auth.currentUser.getIdToken(true);
+        const isSessionValid = await checkSession();
+        if (!isSessionValid) {
+          setUser(null);
+          localStorage.removeItem("user");
+        }
+      } catch (error) {
+        console.error("Error refreshing token:", error);
+        setUser(null);
+        localStorage.removeItem("user");
+      } finally {
+        setIsRefreshing(false);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -51,6 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             console.error("Error fetching user data:", error);
             setUser(null);
             localStorage.removeItem("user");
+            localStorage.removeItem("user")
           }
         } else {
           setUser(null);
@@ -67,7 +99,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, setUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, setUser, isRefreshing, refreshToken }}
+    >
       {children}
     </AuthContext.Provider>
   );
