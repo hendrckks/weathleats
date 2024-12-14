@@ -109,7 +109,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   return (
     <Link
       to={`/recipes/${id}`}
-      className="block w-full hover:scale-105 transition-transform duration-150 ease-linear"
+      className="block w-full"
       onMouseEnter={prefetchRecipe}
     >
       <motion.div
@@ -243,7 +243,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             <img
               src={imageUrl}
               alt={name}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute hover:scale-105 transition-transform duration-150 ease-linear inset-0 w-full h-full object-cover"
               onError={handleImageError}
             />
           )}
