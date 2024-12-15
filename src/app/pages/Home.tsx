@@ -96,11 +96,11 @@ const Home = () => {
             </div>
           </div>
           <div className="flex">
-            <div
+            <Link to="/profile"
               className="md:p-5 p-3 bg-background w-1/2 text-center md:text-sm text-xs rounded-md cursor-pointer hover:bg-background/90 transition-colors"
             >
               Get full access
-            </div>
+            </Link>
             <Link
               to="/"
               className="w-1/2 text-center md:p-4 p-3 text-textWhite md:text-sm text-xs cursor-pointer"
