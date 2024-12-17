@@ -55,7 +55,7 @@ const SignIn = () => {
 
     try {
       await signInWithGoogle(setUser);
-      const from = (location.state as any)?.from?.pathname || "/profile";
+      const from = (location.state as any)?.from?.pathname || "/";
       navigate(from, { replace: true });
     } catch (error: any) {
       setError(error.message);
