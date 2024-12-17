@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
 
 interface NewsletterModalProps {
   isOpen: boolean;
@@ -24,7 +25,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           onClick={onClose}
         >
           <motion.div
@@ -32,80 +33,45 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-primary p-8 rounded-lg max-w-lg w-full relative"
+            className="bg-primary p-6 sm:p-8 rounded-lg w-full max-w-[94%] sm:max-w-md md:max-w-lg relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={onClose}
-              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-3 sm:right-4 sm:top-4 text-gray-500 hover:text-gray-700"
+              aria-label="Close"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-background"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <X className="h-6 w-6 text-background" />
             </button>
-            <h2 className="text-2xl font-medium text-background mb-4">
+            <h2 className="text-xl sm:text-2xl font-medium text-background mb-4">
               Wethleats
             </h2>
             <div className="space-y-4">
-              <p className="text-2xl text-background font-medium">
+              <p className="text-xl sm:text-2xl text-background font-medium">
                 Nutritional tips and healthy recipes straight to your inbox.{" "}
                 <span className="text-gray-300">Every week.</span>
               </p>
-              <div className="bg-[#637257] p-6 text-background rounded-lg space-y-2">
+              <div className="bg-[#637257] p-4 sm:p-6 text-background rounded-lg space-y-2">
                 <div className="flex items-center gap-2">
-                  {/* <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z"
-                      clipRule="evenodd"
-                    />
-                  </svg> */}
-                  <span>Get all newly added recipes</span>
+                  <span className="text-sm sm:text-base">
+                    Get all newly added recipes
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  {/* <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z"
-                      clipRule="evenodd"
-                    />
-                  </svg> */}
-                  <span>Get notified on all newly added recipes</span>
+                  <span className="text-sm sm:text-base">
+                    Get notified on all newly added recipes
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  {/* <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
-                  </svg> */}
-                  <span>Receive nutritional tips and informative articles</span>
+                  <span className="text-sm sm:text-base">
+                    Receive nutritional tips and informative articles
+                  </span>
                 </div>
               </div>
-              <form onSubmit={handleSubmit} className="flex items-center">
+              <form
+                onSubmit={handleSubmit}
+                className="flex flex-col sm:flex-row items-center gap-2"
+              >
                 <div className="border border-gray-300 bg-white text-textBlack w-full rounded-md flex">
                   <input
                     type="email"
@@ -118,7 +84,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                   <button
                     type="submit"
                     disabled={true}
-                    className="w-1/3 cursor-not-allowed text-sm bg-textBlack text-background py-2 px-4 rounded-md transition-colors"
+                    className="md:w-1/2 w-1/3 cursor-not-allowed text-sm bg-textBlack text-background py-2 px-4 rounded-md transition-colors"
                   >
                     Subscribe
                   </button>
