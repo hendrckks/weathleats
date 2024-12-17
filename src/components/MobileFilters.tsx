@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { X, Search, Filter } from "lucide-react";
+import { X, Search } from "lucide-react";
 import DietTag from "./DieTag";
+import Filter from "../assets/icons/Filter";
 
 interface MobileFiltersProps {
   filters: {
@@ -118,7 +119,10 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
         onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
         className="flex items-center gap-2 mt-4 p-2 bg-primary/20 text-sm text-textBlack rounded-sm"
       >
-        <span><Filter className="h-4 w-4 text-textBlack/90"/></span>{isMobileFilterOpen ? "Hide Filters" : "Search / Filter"}
+        <span>
+          <Filter size="18" />
+        </span>
+        {isMobileFilterOpen ? "Hide Filters" : "Search / Filter"}
       </button>
 
       {isMobileFilterOpen && <div className="fixed inset-0 bg-black/20 z-40" />}
@@ -130,7 +134,10 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
         }`}
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-medium">Filters</h2>
+          <div className="flex items-center gap-3">
+            <Filter size="22" />
+            <h2 className="text-lg font-medium">Search / Filters</h2>
+          </div>
           <button
             onClick={() => setIsMobileFilterOpen(false)}
             className="p-1 hover:bg-gray-100 rounded-full"
