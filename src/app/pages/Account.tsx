@@ -589,9 +589,9 @@ const Account: React.FC = () => {
           <div className="mt-8">
             <button
               onClick={handleSignOut}
-              className="bg-gradient-to-b from-[#637257] to-[#4b5942] text-textWhite py-2 px-4 rounded"
+              className="bg-gradient-to-b text-sm from-[#637257] to-[#4b5942] text-textWhite py-2 px-4 rounded"
             >
-              Sign Out
+              Signout
             </button>
           </div>
         </div>
