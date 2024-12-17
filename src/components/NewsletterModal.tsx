@@ -79,7 +79,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full px-3 bg-transparent py-2 rounded-md placeholder:text-textBlack/80 focus:outline-transparent"
+                    className="w-full px-3 bg-transparent py-2 rounded-md placeholder:text-textBlack/80 focus:outline-0 focus:outline-transparent"
                   />
                   <button
                     type="submit"
