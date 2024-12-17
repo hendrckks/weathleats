@@ -34,7 +34,7 @@ const SignIn = () => {
 
     try {
       await login({ email, password }, setUser);
-      const from = (location.state as any)?.from?.pathname || "/profile";
+      const from = (location.state as any)?.from?.pathname || "/";
       navigate(from, { replace: true });
       toast({
         title: "",
