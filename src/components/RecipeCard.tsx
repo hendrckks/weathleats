@@ -192,7 +192,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
           </defs>
         </svg>
         <div className="absolute top-2 left-4 flex items-center space-x-2 z-30">
-          <div className="flex items-center backdrop-blur-lg bg-white/30 px-1 py-1 rounded-xl text-black">
+          <div className="flex items-center backdrop-blur-lg bg-white/30 px-1 py-1 rounded-xl text-textBlack">
             <svg
               className="w-4 h-4 mr-1"
               viewBox="0 0 24 24"
@@ -216,7 +216,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             </svg>
             <span className="text-xs">{prepTime} Mins</span>
           </div>
-          <div className="flex items-center backdrop-blur-3xl bg-white/30 px-1 py-1 rounded-xl text-black">
+          <div className="flex items-center backdrop-blur-3xl bg-white/30 px-1 py-1 rounded-xl text-textBlack">
             <svg
               className="w-4 h-4 mr-1"
               viewBox="0 0 24 24"
