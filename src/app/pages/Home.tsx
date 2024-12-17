@@ -14,7 +14,7 @@ import { useFirebaseCache } from "../../lib/cache/cacheUtils";
 import Pagination from "../../components/navigation/Pagination";
 import MobileFilters from "../../components/MobileFilters";
 import { useAuth } from "../../context/AuthContext";
-// import { migrateRecipes } from "../../lib/migrate";
+import { NewsletterModal } from "../../components/NewsletterModal";
 
 interface InitialRecipe {
   id: string;
@@ -50,6 +50,7 @@ const Home = () => {
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [selectedSearchTerm, setSelectedSearchTerm] = useState("");
   const [_lastVisible, setLastVisible] = useState<any>(null);
+  const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
 
   const isMounted = useRef(true);
 
@@ -96,23 +97,24 @@ const Home = () => {
             </div>
           </div>
           <div className="flex">
-            <Link to="/profile"
+            <Link
+              to="/profile"
               className="md:p-5 p-3 bg-background w-1/2 text-center md:text-sm text-xs rounded-md cursor-pointer hover:bg-background/90 transition-colors"
             >
               Get full access
             </Link>
-            <Link
-              to="/"
+            <button
+              onClick={() => setIsNewsletterOpen(true)}
               className="w-1/2 text-center md:p-4 p-3 text-textWhite md:text-sm text-xs cursor-pointer"
             >
-              Subscribe
-            </Link>
+              Newsletter
+            </button>
           </div>
         </div>
       </div>
     ),
     []
-  ); // Empty dependency array since content is static
+  );
 
   const [filters, setFilters] = useState({
     types: [] as string[],
@@ -451,6 +453,7 @@ const Home = () => {
           searchSuggestions={searchSuggestions}
           searchHistory={searchHistory}
           selectedSearchTerm={selectedSearchTerm}
+          onOpenNewsletter={() => setIsNewsletterOpen(true)}
         />
       </div>
       <div className="text-textBlack md:ml-[317px] xl:ml-[280px] 2xl:ml-[317px] mb-10">
@@ -579,7 +582,6 @@ const Home = () => {
               <h2 className="text-xl">
                 {isForYou ? "For You Recipes" : "Suggested Recipes"}
               </h2>
-              {/* <button onClick={() => migrateRecipes()} className="text-black" >migrate</button> */}
               {hasTrainingGoal && (
                 <div className="relative">
                   <button
@@ -595,7 +597,7 @@ const Home = () => {
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
               {isLoading ? (
                 Array(6)
                   .fill(0)
@@ -608,6 +610,7 @@ const Home = () => {
                       calories=""
                       prepTime=""
                       imageUrl=""
+                      types={[]}
                     />
                   ))
               ) : isSearching || searchResults.length > 0 ? (
@@ -618,6 +621,7 @@ const Home = () => {
                       {...recipe}
                       isLoading={false}
                       searchTerm={searchTerm}
+                      types={recipe.types}
                     />
                   ))
                 ) : (
@@ -632,6 +636,7 @@ const Home = () => {
                     {...recipe}
                     isLoading={false}
                     searchTerm={searchTerm}
+                    types={recipe.types}
                   />
                 ))
               )}
@@ -646,6 +651,10 @@ const Home = () => {
           </div>
         </div>
       </div>
+      <NewsletterModal
+        isOpen={isNewsletterOpen}
+        onClose={() => setIsNewsletterOpen(false)}
+      />
     </div>
   );
 };

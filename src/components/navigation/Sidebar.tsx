@@ -1,6 +1,15 @@
 import { Search, X } from "lucide-react";
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Croissant from "../../assets/icons/Croissant";
+import BentoBox from "../../assets/icons/Bento";
+import Banana from "../../assets/icons/Banana";
+import IceCream from "../../assets/icons/IceCream";
+import MeatOnBone from "../../assets/icons/Meat";
+import Sushi from "../../assets/icons/Sushi";
+import Broccoli from "../../assets/icons/Broccoli";
+import GlutenFreeOutline from "../../assets/icons/GluttenFree";
+import Tomato from "../../assets/icons/Tomato";
 
 interface SidebarProps {
   filters: {
@@ -17,6 +26,7 @@ interface SidebarProps {
   searchHistory: string[];
   selectedSearchTerm: string;
   onSearchSelect: (term: string) => void;
+  onOpenNewsletter: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -29,6 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   searchHistory,
   selectedSearchTerm,
   onSearchSelect,
+  onOpenNewsletter,
 }) => {
   const [searchTerm, setSearchTerm] = useState(selectedSearchTerm);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -69,6 +80,21 @@ const Sidebar: React.FC<SidebarProps> = ({
     onSearchSelect(term);
     setIsSearchFocused(false);
   };
+
+  const categoryIcons = {
+    Breakfast: Croissant,
+    Lunch: BentoBox,
+    "Pre-workout": Banana,
+    "Post-workout": MeatOnBone,
+    Dinner: Sushi,
+    Dessert: IceCream,
+  };
+
+  const typeIcons = {
+    Vegetarian: Broccoli,
+    Vegan: Tomato,
+    "Gluten Free": GlutenFreeOutline,
+  } as const;
 
   return (
     <div className="fixed left-0 top-0 flex h-[100vh] w-72 flex-col bg-background border-r border-r-primary/50 p-6 space-y-6">
@@ -142,36 +168,43 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* Types Section */}
       <div className="space-y-3">
         <h2 className="text-sm font-medium">Types</h2>
-        <div className="space-y-3 text-sm text-textBlack">
-          {["Vegetarian", "Vegan", "Gluten Free"].map((type) => (
-            <label key={type} className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                className="rounded border-primary/50 text-primary focus:ring-primary"
-                checked={filters.types.includes(type)}
-                onChange={() => onFilterChange("types", type)}
-              />
-              <span>{type}</span>
-              <span
-                className={`text-xs ${
-                  type === "Vegetarian"
-                    ? "bg-[#f3ca96]"
-                    : type === "Vegan"
-                    ? "bg-[#6a4731]"
-                    : "bg-[#6b6b71]"
-                } text-white px-1.5 py-0.5 rounded`}
+        <div className="space-y-4 text-sm text-textBlack">
+          {["Vegetarian", "Vegan", "Gluten Free"].map((type) => {
+            const IconComponent = typeIcons[type as keyof typeof typeIcons];
+            return (
+              <label
+                key={type}
+                className="flex cursor-pointer items-center space-x-3"
               >
-                {type === "Vegetarian" ? "V" : type === "Vegan" ? "Ve" : "GF"}
-              </span>
-            </label>
-          ))}
+                <input
+                  type="checkbox"
+                  className="rounded border-primary/50 text-primary focus:ring-primary"
+                  checked={filters.types.includes(type)}
+                  onChange={() => onFilterChange("types", type)}
+                />
+                <IconComponent size="22" />
+                <span>{type}</span>
+                <span
+                  className={`text-xs ${
+                    type === "Vegetarian"
+                      ? "bg-[#f3ca96]"
+                      : type === "Vegan"
+                      ? "bg-[#6a4731]"
+                      : "bg-[#6b6b71]"
+                  } text-white px-1.5 py-0.5 rounded`}
+                >
+                  {type === "Vegetarian" ? "V" : type === "Vegan" ? "Ve" : "GF"}
+                </span>
+              </label>
+            );
+          })}
         </div>
       </div>
 
       {/* Category Section */}
       <div className="space-y-3">
         <h2 className="text-sm font-medium">Category</h2>
-        <div className="space-y-3 text-textBlack text-sm">
+        <div className="space-y-4 text-textBlack text-sm">
           {[
             "Breakfast",
             "Lunch",
@@ -179,17 +212,25 @@ const Sidebar: React.FC<SidebarProps> = ({
             "Post-workout",
             "Dinner",
             "Dessert",
-          ].map((category) => (
-            <label key={category} className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                className="rounded border-primary/50 text-primary focus:ring-primary"
-                checked={filters.categories.includes(category)}
-                onChange={() => onFilterChange("categories", category)}
-              />
-              <span>{category}</span>
-            </label>
-          ))}
+          ].map((category) => {
+            const IconComponent =
+              categoryIcons[category as keyof typeof categoryIcons];
+            return (
+              <label
+                key={category}
+                className="flex cursor-pointer items-center space-x-3"
+              >
+                <input
+                  type="checkbox"
+                  className="rounded border-primary/50 text-primary focus:ring-primary"
+                  checked={filters.categories.includes(category)}
+                  onChange={() => onFilterChange("categories", category)}
+                />
+                <IconComponent size="22" />
+                <span>{category}</span>
+              </label>
+            );
+          })}
         </div>
       </div>
 
@@ -201,9 +242,12 @@ const Sidebar: React.FC<SidebarProps> = ({
             <p className="text-sm text-textWhite">
               Get new recipe alerts and tips to your inbox daily
             </p>
-            <div className="bg-white p-3 text-sm text-center rounded-md text-textBlack hover:bg-background/90 transition-colors cursor-pointer font-medium">
+            <button
+              onClick={onOpenNewsletter}
+              className="w-full bg-white p-3 text-sm text-center rounded-md text-textBlack hover:bg-background/90 transition-colors cursor-pointer font-medium"
+            >
               Subscribe
-            </div>
+            </button>
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { useState, useCallback, useRef } from "react";
 import { useFirebaseCache } from "../lib/cache/cacheUtils";
 import { fetchRecipeById } from "../lib/firebase/firestore";
 import HighlightedText from "./HighlightedTex";
+import DietTag from "./DieTag";
 
 interface RecipeCardProps {
   name: string;
@@ -16,6 +17,7 @@ interface RecipeCardProps {
   id: string;
   isLoading?: boolean;
   searchTerm?: string;
+  types: string[];
 }
 
 const RecipeCard: React.FC<RecipeCardProps> = ({
@@ -26,6 +28,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   id,
   isLoading = false,
   searchTerm = "",
+  types,
 }) => {
   const { user } = useAuth();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
@@ -188,8 +191,8 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             </filter>
           </defs>
         </svg>
-        <div className="absolute top-4 left-2 flex items-center space-x-2 z-30">
-          <div className="flex items-center backdrop-blur-lg bg-white/30 px-1 py-1 rounded-xl text-white">
+        <div className="absolute top-2 left-4 flex items-center space-x-2 z-30">
+          <div className="flex items-center backdrop-blur-lg bg-white/30 px-1 py-1 rounded-xl text-black">
             <svg
               className="w-4 h-4 mr-1"
               viewBox="0 0 24 24"
@@ -213,7 +216,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             </svg>
             <span className="text-xs">{prepTime} Mins</span>
           </div>
-          <div className="flex items-center backdrop-blur-3xl bg-white/30 px-1 py-1 rounded-xl text-white">
+          <div className="flex items-center backdrop-blur-3xl bg-white/30 px-1 py-1 rounded-xl text-black">
             <svg
               className="w-4 h-4 mr-1"
               viewBox="0 0 24 24"
@@ -248,19 +251,19 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             />
           )}
         </div>
-        <motion.span
-          className="text-base mt-3 text-gray-800"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          {name.charAt(0).toUpperCase() + name.slice(1)}
+        <motion.span className="text-base mt-3 text-gray-800">
+          <div className="flex items-center gap-2">
+            {types?.map((type) => (
+              <DietTag key={type} type={type} />
+            ))}
+            {name.charAt(0).toUpperCase() + name.slice(1)}
+          </div>
         </motion.span>
         <h3 className="font-semibold hidden text-lg mb-2">
           <HighlightedText text={name} highlight={searchTerm} />
         </h3>
         <button
-          className="absolute top-4 right-6 bg-transparent rounded-full transition-all duration-300 ease-in-out transform hover:scale-105"
+          className="absolute top-2 right-4 bg-transparent rounded-full transition-all duration-300 ease-in-out transform hover:scale-105"
           onClick={handleLikeClick}
         >
           <svg
