@@ -217,6 +217,7 @@ const Account: React.FC = () => {
         calories={recipe.nutritionFacts?.calories}
         prepTime={recipe.prepTime?.toString() || "N/A"}
         imageUrl={recipe.imageUrls?.[0] || ""}
+        types={[]}
       />
     ));
   };
@@ -350,7 +351,10 @@ const Account: React.FC = () => {
                 to="/account"
                 className="px-4 py-2 bg-gray-100 rounded-[4px] text-sm flex items-center gap-2 hover:bg-gray-200 transition-colors"
               >
-                Edit Account<span><Pen className="text-textGrey h-4 w-4"/></span>
+                Edit Account
+                <span>
+                  <Pen className="text-textGrey h-4 w-4" />
+                </span>
               </Link>
             </div>
           </div>
