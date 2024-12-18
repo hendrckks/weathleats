@@ -15,6 +15,7 @@ import Pagination from "../../components/navigation/Pagination";
 import { Loader2, Heart, ChevronDown, X, Pen } from "lucide-react";
 import ErrorBoundary from "../../components/ErrorBoundary";
 import DietTag from "../../components/DieTag";
+import Sort from "../../assets/icons/Sort";
 
 const RECIPES_PER_PAGE = 8;
 
@@ -467,14 +468,15 @@ const Account: React.FC = () => {
                         </button>
                       </>
                     ) : (
-                      <>
+                      <div className="flex items-center gap-2">
+                        <Sort size="20" />
                         Sort by
                         <ChevronDown
                           className={`h-4 w-4 transition-transform duration-200 ${
                             isDropdownOpen ? "rotate-180" : ""
                           }`}
                         />
-                      </>
+                      </div>
                     )}
                   </div>
                   {isDropdownOpen && (

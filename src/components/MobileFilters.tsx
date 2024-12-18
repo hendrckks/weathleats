@@ -1,7 +1,16 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { X, Search } from "lucide-react";
+import { X, Search } from 'lucide-react';
 import DietTag from "./DieTag";
 import Filter from "../assets/icons/Filter";
+import Croissant from "../assets/icons/Croissant";
+import BentoBox from "../assets/icons/Bento";
+import Banana from "../assets/icons/Banana";
+import IceCream from "../assets/icons/IceCream";
+import MeatOnBone from "../assets/icons/Meat";
+import Sushi from "../assets/icons/Sushi";
+import Broccoli from "../assets/icons/Broccoli";
+import GlutenFreeOutline from "../assets/icons/GluttenFree";
+import Tomato from "../assets/icons/Tomato";
 
 interface MobileFiltersProps {
   filters: {
@@ -113,6 +122,21 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
     }
   };
 
+  const typeIcons = {
+    Vegetarian: Broccoli,
+    Vegan: Tomato,
+    "Gluten Free": GlutenFreeOutline,
+  };
+
+  const categoryIcons = {
+    Breakfast: Croissant,
+    Lunch: BentoBox,
+    "Pre-workout": Banana,
+    "Post-workout": MeatOnBone,
+    Dinner: Sushi,
+    Dessert: IceCream,
+  };
+
   return (
     <div className="md:hidden">
       <button
@@ -214,41 +238,49 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
         <div className="space-y-6">
           <div>
             <h3 className="font-medium mb-3">Types</h3>
-            {["Vegetarian", "Vegan", "Gluten Free"].map((type) => (
-              <label
-                key={type}
-                className="flex items-center text-sm gap-2 mb-3 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={filters.types.includes(type)}
-                  onChange={() => handleFilterChange("types", type)}
-                  disabled={searchTerm.length > 0}
-                  className="rounded border-gray-300 text-primary focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-                <span>{type}</span>
-                <DietTag type={type} />
-              </label>
-            ))}
+            {["Vegetarian", "Vegan", "Gluten Free"].map((type) => {
+              const IconComponent = typeIcons[type as keyof typeof typeIcons];
+              return (
+                <label
+                  key={type}
+                  className="flex items-center text-sm gap-2 mb-3 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={filters.types.includes(type)}
+                    onChange={() => handleFilterChange("types", type)}
+                    disabled={searchTerm.length > 0}
+                    className="rounded border-gray-300 text-primary focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                  <IconComponent size="22" />
+                  <span>{type}</span>
+                  <DietTag type={type} />
+                </label>
+              );
+            })}
           </div>
 
           <div>
             <h3 className="font-medium mb-3">Category</h3>
-            {["Breakfast", "Lunch", "Dinner", "Dessert"].map((category) => (
-              <label
-                key={category}
-                className="flex items-center text-sm gap-2 mb-3 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={filters.categories.includes(category)}
-                  onChange={() => handleFilterChange("categories", category)}
-                  disabled={searchTerm.length > 0}
-                  className="rounded border-gray-300 text-primary focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-                <span>{category}</span>
-              </label>
-            ))}
+            {["Breakfast", "Lunch", "Pre-workout", "Post-workout", "Dinner", "Dessert"].map((category) => {
+              const IconComponent = categoryIcons[category as keyof typeof categoryIcons];
+              return (
+                <label
+                  key={category}
+                  className="flex items-center text-sm gap-2 mb-3 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={filters.categories.includes(category)}
+                    onChange={() => handleFilterChange("categories", category)}
+                    disabled={searchTerm.length > 0}
+                    className="rounded border-gray-300 text-primary focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                  <IconComponent size="22" />
+                  <span>{category}</span>
+                </label>
+              );
+            })}
           </div>
         </div>
 
@@ -265,19 +297,19 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
 
 export default MobileFilters;
 
-{
-  /* 
+// {/* 
 
-// function debounce<F extends (...args: any[]) => any>(func: F, wait: number) {
-//   let timeout: ReturnType<typeof setTimeout> | null = null;
+// // function debounce<F extends (...args: any[]) => any>(func: F, wait: number) {
+// //   let timeout: ReturnType<typeof setTimeout> | null = null;
 
-//   return function (this: any, ...args: Parameters<F>) {
-//     const context = this;
+// //   return function (this: any, ...args: Parameters<F>) {
+// //     const context = this;
 
-//     if (timeout !== null) {
-//       clearTimeout(timeout);
-//     }
-//     timeout = setTimeout(() => func.apply(context, args), wait);
-//   };
-// } */
-}
+// //     if (timeout !== null) {
+// //       clearTimeout(timeout);
+// //     }
+// //     timeout = setTimeout(() => func.apply(context, args), wait);
+// //   };
+// // } */
+// */}
+

@@ -37,15 +37,17 @@ const Navbar: React.FC<NavbarProps> = ({ showFilters }) => {
       <nav className="mx-auto flex h-full items-center justify-between px-4 md:px-8">
         {/* Mobile Menu Button */}
         <div className="flex items-center gap-4 md:hidden">
-          <Link to="/" className="text-xl">
-            Weathleats
+          <Link to="/" className="text-xl flex items-center ml-[-20px]">
+            <img src="/weathleats.png" alt="weathleats logo" className="h-20" />
+            <span className="ml-[-15px]">Weathleats</span>
           </Link>
         </div>
 
         {/* Desktop Logo and Navigation */}
         <div className="hidden md:flex md:items-center md:gap-10">
-          <Link to="/" className="text-xl">
-            Weathleats
+          <Link to="/" className="text-xl ml-[-30px] flex items-center">
+            <img src="/weathleats.png" alt="weathleats logo" className="h-20" />
+            <span className="ml-[-10px]">Weathleats</span>
           </Link>
           <div className="gap-10 flex text-sm">
             <Link

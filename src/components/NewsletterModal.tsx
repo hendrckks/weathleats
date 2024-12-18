@@ -43,8 +43,13 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
             >
               <X className="h-6 w-6 text-background" />
             </button>
-            <h2 className="text-xl sm:text-2xl font-medium text-background mb-4">
-              Wethleats
+            <h2 className="text-xl sm:text-2xl ml-[-20px] flex items-center font-medium text-background mb-4">
+              <img
+                src="/weathleats.png"
+                alt="weathleats logo"
+                className="h-20"
+              />
+              <span className="ml-[-10px]">Weathleats</span>{" "}
             </h2>
             <div className="space-y-4">
               <p className="text-xl sm:text-2xl text-background font-medium">
