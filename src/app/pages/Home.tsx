@@ -65,7 +65,7 @@ const Home = () => {
     () => (
       <div className="flex flex-col md:flex-row justify-between">
         <div>
-          <h1 className="text-4xl md:text-[48px] md:leading-[57.6px] tracking-[-1.92px]">
+          <h1 className="text-4xl md:text-[48px] md:leading-[57.6px] md:tracking-[-1.92px] tracking-tighter">
             1000 Plus performance <br className="hidden md:block" />
             driven recipes for
             <span className="text-[#4b5942] ml-3">athletes.</span>
