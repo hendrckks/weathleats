@@ -72,7 +72,7 @@ const RecipeInfo: React.FC<RecipeInfoProps> = ({ recipe }) => {
           {recipe.category?.[0] || "Uncategorized"}
         </div>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <h1 className="text-3xl md:text-5xl mb-4 md:mb-0">
+          <h1 className="text-3xl md:text-5xl mb-0">
             {recipe.name.charAt(0).toUpperCase() + recipe.name.slice(1)}
           </h1>
 
