@@ -98,13 +98,13 @@ const Home = () => {
           <div className="flex">
             <Link
               to="/profile"
-              className="md:p-5 p-3 tracking-[-0.24px] bg-background w-1/2 text-center md:text-[15px] text-sm rounded-md cursor-pointer hover:bg-background/90 transition-colors"
+              className="md:p-5 p-3 tracking-[-0.24px] bg-background w-1/2 text-center md:text-[15px] text-[13px] rounded-md cursor-pointer hover:bg-background/90 transition-colors"
             >
               Get full access
             </Link>
             <button
               onClick={() => setIsNewsletterOpen(true)}
-              className="w-1/2 tracking-[-0.24px] text-center md:p-4 p-3 text-textWhite md:text-[15px] text-sm cursor-pointer"
+              className="w-1/2 tracking-[-0.24px] text-center md:p-4 p-3 text-textWhite md:text-[15px] text-[13px] cursor-pointer"
             >
               Newsletter
             </button>
