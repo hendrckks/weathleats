@@ -85,7 +85,7 @@ const Home = () => {
             <div className="flex gap-2 items-center">
               <Target className="h-5" />
               <span>
-                Get recipe suggestions according to your Training goals
+                Get recipe suggestions according to Training goals
               </span>
             </div>
             <div className="flex gap-2 items-center">
