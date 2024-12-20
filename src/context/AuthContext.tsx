@@ -20,6 +20,7 @@ interface AuthContextType {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   isRefreshing: boolean;
   refreshToken: () => Promise<void>;
+  isAuthenticated: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -28,6 +29,7 @@ const AuthContext = createContext<AuthContextType>({
   setUser: () => {},
   isRefreshing: false,
   refreshToken: () => Promise.resolve(),
+  isAuthenticated: () => false,
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -63,12 +65,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
+  const isAuthenticated = useCallback(() => {
+    return !!user && !loading;
+  }, [user, loading]);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const isSessionValid = await checkSession();
-        if (isSessionValid) {
-          try {
+        try {
+          const isSessionValid = await checkSession();
+          if (isSessionValid) {
             const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
             const userData = userDoc.data();
             const userWithMetadata: User = {
@@ -76,15 +82,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               createdAt: userData?.createdAt?.toDate().toISOString(),
             };
             setUser(userWithMetadata);
-            // Persist user in localStorage
             localStorage.setItem("user", JSON.stringify(userWithMetadata));
-          } catch (error) {
-            console.error("Error fetching user data:", error);
+          } else {
             setUser(null);
             localStorage.removeItem("user");
-            localStorage.removeItem("user")
           }
-        } else {
+        } catch (error) {
+          console.error("Error fetching user data:", error);
           setUser(null);
           localStorage.removeItem("user");
         }
@@ -100,7 +104,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, setUser, isRefreshing, refreshToken }}
+      value={{
+        user,
+        loading,
+        setUser,
+        isRefreshing,
+        refreshToken,
+        isAuthenticated,
+      }}
     >
       {children}
     </AuthContext.Provider>

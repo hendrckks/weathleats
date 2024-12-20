@@ -1,7 +1,7 @@
-import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useLocation, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,10 +14,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAuth = true,
   requireUnauth = false,
 }) => {
-  const { user: currentUser, loading } = useAuth();
+  const { loading, isAuthenticated, isRefreshing } = useAuth();
   const location = useLocation();
+  const [isReady, setIsReady] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    if (!loading && !isRefreshing) {
+      setIsReady(true);
+    }
+  }, [loading, isRefreshing]);
+
+  if (!isReady) {
     return (
       <div className="h-screen w-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -25,11 +32,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  if (requireAuth && !currentUser) {
+  if (requireAuth && !isAuthenticated()) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (requireUnauth && currentUser) {
+  if (requireUnauth && isAuthenticated()) {
     return <Navigate to="/" replace />;
   }
 
