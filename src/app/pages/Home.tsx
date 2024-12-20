@@ -81,7 +81,7 @@ const Home = () => {
           </div>
         </div>
         <div className="bg-primary/90 rounded-md w-full h-full md:w-[500px] mt-6 md:mt-0 mx-auto space-y-2 p-2">
-          <div className="bg-[#637257] tracking-[-0.24px] p-4 text-textWhite rounded-md space-y-3 text-sm md:text-[15px]">
+          <div className="bg-[#637257] tracking-[-0.24px] p-4 text-textWhite rounded-md space-y-3 text-[13px] md:text-[15px]">
             <div className="flex gap-2 items-center">
               <Target className="h-5" />
               <span>Training goals-specific recipe suggestions</span>
