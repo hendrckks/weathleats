@@ -42,7 +42,7 @@ const Navbar: React.FC<NavbarProps> = ({ showFilters }) => {
             <span className="ml-[-20px] tracking-tight text-textBlack">
               Weathleats
             </span>
-            <span className="font-athauss italic text-primary text-xs mt-[6px] ml-[5px]">
+            <span className="font-athauss italic text-primary text-xs mt-[5px] ml-[6px]">
               beta
             </span>
           </Link>
