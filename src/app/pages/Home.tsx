@@ -81,7 +81,7 @@ const Home = () => {
           </div>
         </div>
         <div className="bg-primary/90 rounded-md w-full h-full md:w-[500px] mt-6 md:mt-0 mx-auto space-y-2 p-2">
-          <div className="bg-[#637257] tracking-[-0.24px] p-4 text-textWhite rounded-md space-y-3 text-xs md:text-sm">
+          <div className="bg-[#637257] tracking-[-0.24px] p-4 text-textWhite rounded-md space-y-3 text-xs md:text-[15px]">
             <div className="flex gap-2 items-center">
               <Target className="h-5" />
               <span>
@@ -100,13 +100,13 @@ const Home = () => {
           <div className="flex">
             <Link
               to="/profile"
-              className="md:p-5 p-3 tracking-[-0.24px] bg-background w-1/2 text-center md:text-sm text-xs rounded-md cursor-pointer hover:bg-background/90 transition-colors"
+              className="md:p-5 p-3 tracking-[-0.24px] bg-background w-1/2 text-center md:text-[15px] text-xsms rounded-md cursor-pointer hover:bg-background/90 transition-colors"
             >
               Get full access
             </Link>
             <button
               onClick={() => setIsNewsletterOpen(true)}
-              className="w-1/2 tracking-[-0.24px] text-center md:p-4 p-3 text-textWhite md:text-sm text-xs cursor-pointer"
+              className="w-1/2 tracking-[-0.24px] text-center md:p-4 p-3 text-textWhite md:text-[15px] text-sm cursor-pointer"
             >
               Newsletter
             </button>
@@ -484,7 +484,7 @@ const Home = () => {
                     </button>
                   </>
                 ) : (
-                  <div className="flex items-center gap-2">
+                  <div className="flex md:text-[15px] items-center gap-2">
                     <Sort size="20" />
                     Sort by
                     <ChevronDown
@@ -497,7 +497,7 @@ const Home = () => {
               </div>
               {isDropdownOpen && (
                 <div
-                  className="absolute left-0 top-full text-sm mt-[2px] bg-background border border-primary/40 shadow-lg rounded-sm w-56 py-1 px-1 z-50"
+                  className="absolute left-0 top-full md:text-[15px] text-sm mt-[2px] bg-background border border-primary/40 shadow-lg rounded-sm w-56 py-1 px-1 z-50"
                   onMouseLeave={() => !isMobile && setIsDropdownOpen(false)}
                 >
                   <div
