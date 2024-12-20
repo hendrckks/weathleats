@@ -65,23 +65,23 @@ const Home = () => {
     () => (
       <div className="flex flex-col md:flex-row justify-between">
         <div>
-          <h1 className="text-4xl md:text-[48px] md:leading-[57.6px] md:tracking-[-1.92px] tracking-tighter">
+          <h1 className="text-4xl md:text-[48px] md:leading-[57.6px] leading-[44px] md:tracking-[-1.92px] tracking-tight">
             1000 Plus performance <br className="hidden md:block" />
             driven recipes for
             <span className="text-[#4b5942] ml-3">athletes.</span>
           </h1>
-          <div className="mt-6 md:mt-8 tracking-[-0.24px] font-medium">
+          <div className="mt-6 md:mt-8 tracking-[-0.2px] text-[17px] font-medium">
             <p className="font-medium">
-              Elevate your performance with precision nutrition.{" "}
+              Elevate your performance with precision nutrition.
               <br className="hidden md:block" />
-              Our recipes are tailored for athletes who push{" "}
+              Our recipes are tailored for athletes who push
               <br className="hidden md:block" /> their limits and demand the
               best fuel for optimal results.
             </p>
           </div>
         </div>
         <div className="bg-primary/90 rounded-md w-full h-full md:w-[500px] mt-6 md:mt-0 mx-auto space-y-2 p-2">
-          <div className="bg-[#637257] p-4 text-textWhite rounded-md space-y-3 text-xs md:text-sm">
+          <div className="bg-[#637257] tracking-[-0.24px] p-4 text-textWhite rounded-md space-y-3 text-xs md:text-sm">
             <div className="flex gap-2 items-center">
               <Target className="h-5" />
               <span>
@@ -100,13 +100,13 @@ const Home = () => {
           <div className="flex">
             <Link
               to="/profile"
-              className="md:p-5 p-3 bg-background w-1/2 text-center md:text-sm text-xs rounded-md cursor-pointer hover:bg-background/90 transition-colors"
+              className="md:p-5 p-3 tracking-[-0.24px] bg-background w-1/2 text-center md:text-sm text-xs rounded-md cursor-pointer hover:bg-background/90 transition-colors"
             >
               Get full access
             </Link>
             <button
               onClick={() => setIsNewsletterOpen(true)}
-              className="w-1/2 text-center md:p-4 p-3 text-textWhite md:text-sm text-xs cursor-pointer"
+              className="w-1/2 tracking-[-0.24px] text-center md:p-4 p-3 text-textWhite md:text-sm text-xs cursor-pointer"
             >
               Newsletter
             </button>
@@ -581,7 +581,7 @@ const Home = () => {
               {renderMobileFilters()}
             </div>
             <div className="flex gap-4 items-center mt-2">
-              <h2 className="text-xl">
+              <h2 className="text-xl tracking-[-0.24px]">
                 {isForYou ? "For You Recipes" : "Suggested Recipes"}
               </h2>
               {hasTrainingGoal && (

@@ -252,7 +252,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
           )}
         </div>
         <motion.span className="text-base mt-3 text-gray-800">
-          <div className="flex items-center gap-2">
+          <div className="flex text-[18px] items-center tracking-tight gap-2">
             {types?.map((type) => (
               <DietTag key={type} type={type} />
             ))}

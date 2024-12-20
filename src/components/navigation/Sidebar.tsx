@@ -100,7 +100,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     <div className="fixed left-0 top-0 flex h-[100vh] w-72 flex-col bg-background border-r border-r-primary/50 p-6 space-y-6">
       {/* Search Section */}
       <div className="space-y-2 mt-24">
-        <h2 className="text-sm font-medium">Search</h2>
+        <h2 className="text-sm font-medium text-textBlack">Search</h2>
         <form onSubmit={handleSearch} className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <input
@@ -167,23 +167,23 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Types Section */}
       <div className="space-y-3">
-        <h2 className="text-sm font-medium">Types</h2>
-        <div className="space-y-4 text-sm text-textBlack">
+        <h2 className="text-sm font-medium text-textBlack">Types</h2>
+        <div className="space-y-3 text-sm text-textBlack">
           {["Vegetarian", "Vegan", "Gluten Free"].map((type) => {
             const IconComponent = typeIcons[type as keyof typeof typeIcons];
             return (
               <label
                 key={type}
-                className="flex cursor-pointer items-center space-x-3"
+                className="flex cursor-pointer items-center tracking-tight space-x-3"
               >
                 <input
                   type="checkbox"
-                  className="rounded border-primary/50 text-primary focus:ring-primary"
+                  className="rounded border-primary/50 bg-primary text-primary focus:ring-primary"
                   checked={filters.types.includes(type)}
                   onChange={() => onFilterChange("types", type)}
                 />
                 <IconComponent size="22" />
-                <span>{type}</span>
+                <span className="text-[15px]">{type}</span>
                 <span
                   className={`text-xs ${
                     type === "Vegetarian"
@@ -203,8 +203,8 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Category Section */}
       <div className="space-y-3">
-        <h2 className="text-sm font-medium">Category</h2>
-        <div className="space-y-4 text-textBlack text-sm">
+        <h2 className="text-sm text-textBlack font-medium">Category</h2>
+        <div className="space-y-3 text-textBlack text-[15px]">
           {[
             "Breakfast",
             "Lunch",
@@ -218,7 +218,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             return (
               <label
                 key={category}
-                className="flex cursor-pointer items-center space-x-3"
+                className="flex cursor-pointer tracking-tight items-center space-x-3"
               >
                 <input
                   type="checkbox"
@@ -237,14 +237,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* newsletter - Updated positioning */}
       <div className="fixed bottom-8 left-6 w-60 hidden 2xl:block">
         <div className="p-5 space-y-3 bg-primary/20 rounded-md">
-          <p className="text-textBlack text-base">Subscribe to newsletter</p>
+          <p className="text-textBlack tracking-tight text-base">Subscribe to newsletter</p>
           <div className="p-4 bg-[#637257] space-y-5 rounded-md">
-            <p className="text-sm text-textWhite">
+            <p className="text-sm text-textWhite tracking-tight">
               Get new recipe alerts and tips to your inbox daily
             </p>
             <button
               onClick={onOpenNewsletter}
-              className="w-full bg-white p-3 text-sm text-center rounded-md text-textBlack hover:bg-background/90 transition-colors cursor-pointer font-medium"
+              className="w-full bg-white tracking-[-0.24px] p-3 text-sm text-center rounded-md text-textBlack hover:bg-background/90 transition-colors cursor-pointer font-medium"
             >
               Subscribe
             </button>
