@@ -58,9 +58,9 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
               </p>
               <div className="bg-[#637257] p-4 sm:p-6 text-background rounded-lg space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm sm:text-base">
+                  {/* <span className="text-sm sm:text-base">
                     Get all newly added recipes
-                  </span>
+                  </span> */}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm sm:text-base">

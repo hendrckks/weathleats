@@ -74,7 +74,7 @@ const Home = () => {
             <p className="font-medium">
               Elevate your performance with precision nutrition.
               <br className="hidden md:block" />
-              Our recipes are tailored for athletes who push
+              &nbsp;Our recipes are tailored for athletes who push
               <br className="hidden md:block" /> their limits and demand the
               best fuel for optimal results.
             </p>

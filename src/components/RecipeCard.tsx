@@ -130,7 +130,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
           duration: isDissolving ? 1.5 : 0.5,
           ease: "easeIn",
         }}
-        className={`w-full flex flex-col rounded-md cursor-pointer relative md:mt-0 mt-4`}
+        className={`w-full flex flex-col rounded-md cursor-pointer relative`}
       >
         <svg
           className="absolute"
@@ -252,7 +252,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
           )}
         </div>
         <motion.span className="text-base mt-3 text-gray-800">
-          <div className="flex text-[18px] items-center tracking-tight gap-2">
+          <div className="flex text- items-center tracking-tight gap-2">
             {types?.map((type) => (
               <DietTag key={type} type={type} />
             ))}
