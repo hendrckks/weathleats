@@ -21,6 +21,7 @@ interface AuthContextType {
   isRefreshing: boolean;
   refreshToken: () => Promise<void>;
   isAuthenticated: () => boolean;
+  isAuthReady: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -30,6 +31,7 @@ const AuthContext = createContext<AuthContextType>({
   isRefreshing: false,
   refreshToken: () => Promise.resolve(),
   isAuthenticated: () => false,
+  isAuthReady: () => false,
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -66,8 +68,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const isAuthenticated = useCallback(() => {
-    return !!user && !loading;
-  }, [user, loading]);
+    return !!user && !loading && !isRefreshing;
+  }, [user, loading, isRefreshing]);
+
+  const isAuthReady = useCallback(() => {
+    return !loading && !isRefreshing;
+  }, [loading, isRefreshing]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -111,6 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         isRefreshing,
         refreshToken,
         isAuthenticated,
+        isAuthReady,
       }}
     >
       {children}
