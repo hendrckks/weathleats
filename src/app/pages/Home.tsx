@@ -65,12 +65,12 @@ const Home = () => {
     () => (
       <div className="flex flex-col md:flex-row justify-between">
         <div>
-          <h1 className="text-4xl md:text-[48px] md:leading-[56px]">
+          <h1 className="text-4xl md:text-[48px] md:leading-[57.6px] tracking-[-1.92px]">
             1000 Plus performance <br className="hidden md:block" />
             driven recipes for
             <span className="text-[#4b5942] ml-3">athletes.</span>
           </h1>
-          <div className="mt-6 md:mt-8">
+          <div className="mt-6 md:mt-8 tracking-[-0.24px] font-medium">
             <p className="font-medium">
               Elevate your performance with precision nutrition.{" "}
               <br className="hidden md:block" />
