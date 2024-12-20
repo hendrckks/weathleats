@@ -84,9 +84,7 @@ const Home = () => {
           <div className="bg-[#637257] tracking-[-0.24px] p-4 text-textWhite rounded-md space-y-3 text-sm md:text-[15px]">
             <div className="flex gap-2 items-center">
               <Target className="h-5" />
-              <span>
-                Get recipe suggestions according to Training goals
-              </span>
+              <span>Training goals-specific recipe suggestions</span>
             </div>
             <div className="flex gap-2 items-center">
               <Heart className="h-5" />
