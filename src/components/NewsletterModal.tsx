@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import ForkKnife from "../assets/icons/ForkKnife";
+import ArticleShortcutRounded from "../assets/icons/Articles";
 
 interface NewsletterModalProps {
   isOpen: boolean;
@@ -63,11 +65,13 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                   </span> */}
                 </div>
                 <div className="flex items-center gap-2">
+                  <ForkKnife size="24" className="text-background"/>
                   <span className="text-sm sm:text-base">
                     Get notified on all newly added recipes
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
+                  <ArticleShortcutRounded size="24" className="text-background"/>
                   <span className="text-sm sm:text-base">
                     Receive nutritional tips and informative articles
                   </span>
