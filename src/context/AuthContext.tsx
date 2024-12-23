@@ -22,6 +22,7 @@ interface AuthContextType {
   refreshToken: () => Promise<void>;
   isAuthenticated: () => boolean;
   isAuthReady: () => boolean;
+  authStateComplete: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -32,13 +33,13 @@ const AuthContext = createContext<AuthContextType>({
   refreshToken: () => Promise.resolve(),
   isAuthenticated: () => false,
   isAuthReady: () => false,
+  authStateComplete: false,
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(() => {
-    // Check if there's a valid session on initial load
     const sessionExpiration = localStorage.getItem("sessionExpiration");
     return sessionExpiration && Date.now() < parseInt(sessionExpiration)
       ? JSON.parse(localStorage.getItem("user") || "null")
@@ -46,6 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   });
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [authStateComplete, setAuthStateComplete] = useState(false);
 
   const refreshToken = useCallback(async () => {
     if (auth.currentUser) {
@@ -68,15 +70,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const isAuthenticated = useCallback(() => {
-    return !!user && !loading && !isRefreshing;
-  }, [user, loading, isRefreshing]);
+    return !!user && !loading && !isRefreshing && authStateComplete;
+  }, [user, loading, isRefreshing, authStateComplete]);
 
   const isAuthReady = useCallback(() => {
-    return !loading && !isRefreshing;
-  }, [loading, isRefreshing]);
+    return !loading && !isRefreshing && authStateComplete;
+  }, [loading, isRefreshing, authStateComplete]);
 
   useEffect(() => {
+    let mounted = true;
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!mounted) return;
+
       if (firebaseUser) {
         try {
           const isSessionValid = await checkSession();
@@ -102,10 +108,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setUser(null);
         localStorage.removeItem("user");
       }
+
       setLoading(false);
+      setAuthStateComplete(true);
     });
 
-    return () => unsubscribe();
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, []);
 
   return (
@@ -118,6 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         refreshToken,
         isAuthenticated,
         isAuthReady,
+        authStateComplete,
       }}
     >
       {children}

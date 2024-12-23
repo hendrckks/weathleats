@@ -20,7 +20,7 @@ import Sort from "../../assets/icons/Sort";
 const RECIPES_PER_PAGE = 8;
 
 const Account: React.FC = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, authStateComplete } = useAuth();
   const { favorites } = useFavorites();
   const memoizedFavorites = useMemo(() => favorites, [favorites]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -34,6 +34,20 @@ const Account: React.FC = () => {
   // const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [trainingGoals, setTrainingGoals] = useState<TrainingGoal[]>([]);
+
+  useEffect(() => {
+    if (!authLoading && authStateComplete && !user) {
+      navigate("/login");
+    }
+  }, [user, authLoading, authStateComplete, navigate]);
+
+  if (authLoading || !authStateComplete) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   useEffect(() => {
     const fetchUserDataAndGoals = async () => {
