@@ -14,17 +14,27 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAuth = true,
   requireUnauth = false,
 }) => {
-  const { loading, isAuthenticated, isRefreshing } = useAuth();
+  const {
+    loading,
+    isAuthenticated,
+    isAuthReady,
+    authStateComplete,
+    isInitialized,
+  } = useAuth();
   const location = useLocation();
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (!loading && !isRefreshing) {
-      setIsReady(true);
-    }
-  }, [loading, isRefreshing]);
+    const checkAuthStatus = async () => {
+      if (isAuthReady() && authStateComplete && isInitialized) {
+        setIsReady(true);
+      }
+    };
 
-  if (!isReady) {
+    checkAuthStatus();
+  }, [isAuthReady, authStateComplete, isInitialized]);
+
+  if (!isReady || loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

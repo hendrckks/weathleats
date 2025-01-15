@@ -26,55 +26,52 @@ interface AuthContextType {
   isInitialized: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: true,
-  setUser: () => {},
-  isRefreshing: false,
-  refreshToken: () => Promise.resolve(),
-  isAuthenticated: () => false,
-  isAuthReady: () => false,
-  authStateComplete: false,
-  isInitialized: false,
-});
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const sessionExpiration = localStorage.getItem("sessionExpiration");
-    return sessionExpiration && Date.now() < parseInt(sessionExpiration)
-      ? JSON.parse(localStorage.getItem("user") || "null")
-      : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [authStateComplete, setAuthStateComplete] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // Enhanced token refresh with retries and validation
   const refreshToken = useCallback(async () => {
-    if (auth.currentUser) {
-      setIsRefreshing(true);
+    if (!auth.currentUser) return;
+
+    setIsRefreshing(true);
+    let retries = 3;
+
+    while (retries > 0) {
       try {
         await auth.currentUser.getIdToken(true);
         const isSessionValid = await checkSession();
+
         if (!isSessionValid) {
           setUser(null);
           localStorage.removeItem("user");
+          break;
         }
+        return; // Success
       } catch (error) {
-        console.error("Error refreshing token:", error);
-        setUser(null);
-        localStorage.removeItem("user");
-      } finally {
-        setIsRefreshing(false);
+        retries--;
+        if (retries === 0) {
+          setUser(null);
+          localStorage.removeItem("user");
+          console.error("Token refresh failed after retries:", error);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait before retry
       }
     }
   }, []);
 
   const isAuthenticated = useCallback(() => {
-    return !!user && !loading && !isRefreshing && authStateComplete;
-  }, [user, loading, isRefreshing, authStateComplete]);
+    return Boolean(
+      user && !loading && !isRefreshing && authStateComplete && isInitialized
+    );
+  }, [user, loading, isRefreshing, authStateComplete, isInitialized]);
 
   const isAuthReady = useCallback(() => {
     return !loading && !isRefreshing && authStateComplete;
@@ -82,44 +79,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     let mounted = true;
+    let authStateUnsubscribe: (() => void) | null = null;
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (!mounted) return;
+    const initializeAuth = async () => {
+      try {
+        authStateUnsubscribe = onAuthStateChanged(
+          auth,
+          async (firebaseUser) => {
+            if (!mounted) return;
 
-      if (firebaseUser) {
-        try {
-          const isSessionValid = await checkSession();
-          if (isSessionValid) {
-            const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-            const userData = userDoc.data();
-            const userWithMetadata: User = {
-              ...firebaseUser,
-              createdAt: userData?.createdAt?.toDate().toISOString(),
-            };
-            setUser(userWithMetadata);
-            localStorage.setItem("user", JSON.stringify(userWithMetadata));
-          } else {
-            setUser(null);
-            localStorage.removeItem("user");
+            if (firebaseUser) {
+              try {
+                const isSessionValid = await checkSession();
+
+                if (isSessionValid) {
+                  const userDoc = await getDoc(
+                    doc(db, "users", firebaseUser.uid)
+                  );
+                  const userData = userDoc.data();
+
+                  if (mounted) {
+                    const userWithMetadata: User = {
+                      ...firebaseUser,
+                      createdAt: userData?.createdAt?.toDate().toISOString(),
+                    };
+                    setUser(userWithMetadata);
+                  }
+                } else {
+                  if (mounted) setUser(null);
+                }
+              } catch (error) {
+                console.error("Auth state sync error:", error);
+                if (mounted) setUser(null);
+              }
+            } else {
+              if (mounted) setUser(null);
+            }
+
+            if (mounted) {
+              setLoading(false);
+              setAuthStateComplete(true);
+              setIsInitialized(true);
+            }
           }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-          setUser(null);
-          localStorage.removeItem("user");
+        );
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        if (mounted) {
+          setLoading(false);
+          setAuthStateComplete(true);
+          setIsInitialized(true);
         }
-      } else {
-        setUser(null);
-        localStorage.removeItem("user");
       }
+    };
 
-      setLoading(false);
-      setAuthStateComplete(true);
-      setIsInitialized(true);
-    });
+    initializeAuth();
 
     return () => {
       mounted = false;
-      unsubscribe();
+      if (authStateUnsubscribe) authStateUnsubscribe();
     };
   }, []);
 
