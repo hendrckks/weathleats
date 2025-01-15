@@ -5,6 +5,7 @@ import { QuoteLeft } from "../../assets/icons/Quotes";
 import { login, signInWithGoogle } from "../../lib/firebase/auth";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "../../hooks/useToast";
+import { auth } from "../../lib/firebase/clientApp";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -34,6 +35,18 @@ const SignIn = () => {
 
     try {
       await login({ email, password }, setUser);
+      // Wait for auth state to be initialized before navigating
+      await new Promise((resolve) => {
+        const checkAuth = () => {
+          if (auth.currentUser) {
+            resolve(true);
+            return;
+          }
+          setTimeout(checkAuth, 50);
+        };
+        checkAuth();
+      });
+
       const from = (location.state as any)?.from?.pathname || "/";
       navigate(from, { replace: true });
       toast({

@@ -23,6 +23,7 @@ interface AuthContextType {
   isAuthenticated: () => boolean;
   isAuthReady: () => boolean;
   authStateComplete: boolean;
+  isInitialized: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -34,6 +35,7 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: () => false,
   isAuthReady: () => false,
   authStateComplete: false,
+  isInitialized: false,
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -48,6 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [authStateComplete, setAuthStateComplete] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const refreshToken = useCallback(async () => {
     if (auth.currentUser) {
@@ -111,6 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setLoading(false);
       setAuthStateComplete(true);
+      setIsInitialized(true);
     });
 
     return () => {
@@ -130,6 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         isAuthenticated,
         isAuthReady,
         authStateComplete,
+        isInitialized,
       }}
     >
       {children}
