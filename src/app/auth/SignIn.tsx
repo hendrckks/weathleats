@@ -57,15 +57,19 @@ const SignIn = () => {
 
     try {
       const user = await signInWithGoogle(setUser);
-      // Wait for auth state to be ready before navigating
-      await new Promise((resolve) => {
-        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-          if (firebaseUser && firebaseUser.uid === user.uid) {
-            unsubscribe();
-            resolve(true);
-          }
-        });
-      });
+      // Wait for both auth state and session initialization
+      await Promise.all([
+        new Promise<void>((resolve) => {
+          const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+            if (firebaseUser && firebaseUser.uid === user.uid) {
+              unsubscribe();
+              resolve();
+            }
+          });
+        }),
+        // Add a small delay to ensure session data is properly set
+        new Promise((resolve) => setTimeout(resolve, 500)),
+      ]);
 
       const from = (location.state as any)?.from?.pathname || "/";
       navigate(from, { replace: true });

@@ -19,14 +19,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
     let timeout: NodeJS.Timeout;
+
     if (!loading && !isRefreshing && isInitialized) {
-      // Add a small delay to ensure all auth states are synchronized
       timeout = setTimeout(() => {
-        setIsReady(true);
-      }, 200);
+        if (mounted) {
+          setIsReady(true);
+        }
+      }, 300); // Slightly increased delay for better stability
     }
-    return () => clearTimeout(timeout);
+
+    return () => {
+      mounted = false;
+      if (timeout) clearTimeout(timeout);
+    };
   }, [loading, isRefreshing, isInitialized]);
 
   if (!isReady) {
