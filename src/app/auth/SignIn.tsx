@@ -5,6 +5,8 @@ import { QuoteLeft } from "../../assets/icons/Quotes";
 import { login, signInWithGoogle } from "../../lib/firebase/auth";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "../../hooks/useToast";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../../lib/firebase/clientApp";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -54,7 +56,17 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      await signInWithGoogle(setUser);
+      const user = await signInWithGoogle(setUser);
+      // Wait for auth state to be ready before navigating
+      await new Promise((resolve) => {
+        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+          if (firebaseUser && firebaseUser.uid === user.uid) {
+            unsubscribe();
+            resolve(true);
+          }
+        });
+      });
+
       const from = (location.state as any)?.from?.pathname || "/";
       navigate(from, { replace: true });
     } catch (error: any) {
