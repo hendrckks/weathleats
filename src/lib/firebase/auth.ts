@@ -446,8 +446,12 @@ export const signInWithGoogle = async (
 
     await authManager.startSessionTimeout(userWithMetadata);
 
-    // Update the user state immediately
+    // Update local storage and state
+    localStorage.setItem("user", JSON.stringify(userWithMetadata));
     setUser(userWithMetadata);
+
+    // Wait a short time to ensure Firebase auth state is updated
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     return userWithMetadata;
   } catch (error) {

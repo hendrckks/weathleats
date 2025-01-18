@@ -14,15 +14,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAuth = true,
   requireUnauth = false,
 }) => {
-  const { loading, isAuthenticated, isRefreshing } = useAuth();
+  const { loading, isAuthenticated, isRefreshing, isInitialized } = useAuth();
   const location = useLocation();
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (!loading && !isRefreshing) {
+    if (!loading && !isRefreshing && isInitialized) {
       setIsReady(true);
     }
-  }, [loading, isRefreshing]);
+  }, [loading, isRefreshing, isInitialized]);
 
   if (!isReady) {
     return (

@@ -22,6 +22,7 @@ interface AuthContextType {
   refreshToken: () => Promise<void>;
   isAuthenticated: () => boolean;
   isAuthReady: () => boolean;
+  isInitialized: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -32,20 +33,22 @@ const AuthContext = createContext<AuthContextType>({
   refreshToken: () => Promise.resolve(),
   isAuthenticated: () => false,
   isAuthReady: () => false,
+  isInitialized: false,
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(() => {
-    // Check if there's a valid session on initial load
     const sessionExpiration = localStorage.getItem("sessionExpiration");
     return sessionExpiration && Date.now() < parseInt(sessionExpiration)
       ? JSON.parse(localStorage.getItem("user") || "null")
       : null;
   });
+
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const refreshToken = useCallback(async () => {
     if (auth.currentUser) {
@@ -103,6 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         localStorage.removeItem("user");
       }
       setLoading(false);
+      setIsInitialized(true);
     });
 
     return () => unsubscribe();
@@ -118,6 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         refreshToken,
         isAuthenticated,
         isAuthReady,
+        isInitialized,
       }}
     >
       {children}
