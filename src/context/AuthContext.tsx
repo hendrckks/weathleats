@@ -1,4 +1,3 @@
-// AuthContext.tsx
 import React, {
   createContext,
   useState,
@@ -117,7 +116,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, []);
 
-  // Add session refresh logic
   useEffect(() => {
     if (user) {
       const sessionRefreshInterval = setInterval(async () => {
